@@ -5,7 +5,7 @@
 > Deploy**, **Deno KV**, **Fresh SSR**, and **Octokit**.
 
 [![Status](https://img.shields.io/github/actions/workflow/status/glastor-dev/status/ci.yml?branch=master&label=CI%2FCD)](https://github.com/glastor-dev/status/actions)
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Built with Deno](https://img.shields.io/badge/Deno-2.x-black?logo=deno)](https://deno.land)
 [![Fresh Framework](https://img.shields.io/badge/Fresh-1.7.3-yellow?logo=fresh)](https://fresh.deno.dev)
 [![Repo](https://img.shields.io/badge/GitHub-glastor--dev%2Fstatus-181717?logo=github)](https://github.com/glastor-dev/status)
@@ -136,10 +136,16 @@ Deploy with 1-click or via GitHub integration on
   software.
 - 🛡️ [SECURITY.md](.github/SECURITY.md) — Políticas de seguridad y reporte de
   vulnerabilidades.
+- 📄 [LICENSE](LICENSE) — Licencia de código abierto GNU Affero General Public
+  License v3.0 (AGPL-3.0).
 
 ---
 
 ## 📄 Licencia
 
-GPL-3.0 © 2010-2026 Andrés Antonio Cardoso — GLASTOR®. Todos los derechos
+Este proyecto está licenciado bajo los términos de la **GNU Affero General
+Public License v3.0 (AGPL-3.0)**. Consulta el archivo [LICENSE](LICENSE) para
+más detalles.
+
+AGPL-3.0 © 2010-2026 Andrés Antonio Cardoso — GLASTOR®. Todos los derechos
 reservados.

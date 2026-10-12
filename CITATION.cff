@@ -10,7 +10,7 @@ authors:
     email: "glastor.info@gmail.com"
 repository-code: "https://github.com/glastor-dev/status"
 url: "https://github.com/glastor-dev/status"
-license: GPL-3.0-only
+license: AGPL-3.0-only
 keywords:
   - Deno
   - Deno Deploy

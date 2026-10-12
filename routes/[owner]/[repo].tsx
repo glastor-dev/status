@@ -8,6 +8,8 @@ import BadgeCopier from "../../islands/BadgeCopier.tsx";
 import LiveRefresh from "../../islands/LiveRefresh.tsx";
 import UptimeBarTooltip from "../../islands/UptimeBarTooltip.tsx";
 
+import { isValidGitHubIdentifier } from "../../services/security.ts";
+
 interface StatusPageData {
   statusData: RepoStatusData | null;
   error?: string;
@@ -19,6 +21,20 @@ export const handler: Handlers<StatusPageData> = {
   async GET(req: Request, ctx: FreshContext) {
     const owner = ctx.params.owner;
     const repo = ctx.params.repo;
+
+    // AppSec: Strict input validation against traversal/SSRF
+    if (!isValidGitHubIdentifier(owner) || !isValidGitHubIdentifier(repo)) {
+      return ctx.render(
+        {
+          statusData: null,
+          error: "Identificador de repositorio o propietario inválido.",
+          owner,
+          repo,
+        },
+        { status: 400 },
+      );
+    }
+
     const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
 

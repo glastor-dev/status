@@ -1,0 +1,37 @@
+name: CI Pipeline (Code Quality & Security)
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+# AppSec: Principle of Least Privilege (PoLP)
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, TypeCheck & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno 2.x
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Verify Code Formatting
+        run: deno fmt --check
+
+      - name: Run Deno Linter
+        run: deno lint
+
+      - name: Run Strict Type Check
+        run: deno check **/*.ts **/*.tsx
+
+      - name: Execute Unit & Integration Test Suite
+        run: deno test --unstable-kv -A

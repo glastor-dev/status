@@ -1,6 +1,7 @@
 // routes/api/status/[owner]/[repo].ts
 import { FreshContext } from "$fresh/server.ts";
 import { fetchRepoStatus } from "../../../../services/github.ts";
+import { isValidGitHubIdentifier } from "../../../../services/security.ts";
 
 export const handler = async (
   req: Request,
@@ -10,6 +11,29 @@ export const handler = async (
   const repo = ctx.params.repo;
   const url = new URL(req.url);
   const forceRefresh = url.searchParams.get("refresh") === "true";
+
+  // AppSec: Strict input validation
+  if (!isValidGitHubIdentifier(owner) || !isValidGitHubIdentifier(repo)) {
+    return new Response(
+      JSON.stringify(
+        {
+          error:
+            "Identificador de repositorio o propietario de GitHub no válido.",
+          owner,
+          repo,
+        },
+        null,
+        2,
+      ),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Access-Control-Allow-Origin": "*",
+        },
+      },
+    );
+  }
 
   try {
     const data = await fetchRepoStatus(owner, repo, forceRefresh);
@@ -24,11 +48,11 @@ export const handler = async (
   } catch (err: unknown) {
     const message = err instanceof Error
       ? err.message
-      : "Internal Server Error";
+      : "Error interno del servidor";
     return new Response(
       JSON.stringify({ error: message, owner, repo }, null, 2),
       {
-        status: message.includes("not found") ? 404 : 500,
+        status: message.includes("no fue encontrado") ? 404 : 500,
         headers: {
           "Content-Type": "application/json; charset=utf-8",
           "Access-Control-Allow-Origin": "*",

@@ -5,6 +5,7 @@
 import * as $_owner_repo_ from "./routes/[owner]/[repo].tsx";
 import * as $_404 from "./routes/_404.tsx";
 import * as $_app from "./routes/_app.tsx";
+import * as $_middleware from "./routes/_middleware.ts";
 import * as $api_ping_owner_repo_ from "./routes/api/ping/[owner]/[repo].ts";
 import * as $api_status_owner_repo_ from "./routes/api/status/[owner]/[repo].ts";
 import * as $badge_owner_repo_ from "./routes/badge/[owner]/[repo].ts";
@@ -20,6 +21,7 @@ const manifest = {
     "./routes/[owner]/[repo].tsx": $_owner_repo_,
     "./routes/_404.tsx": $_404,
     "./routes/_app.tsx": $_app,
+    "./routes/_middleware.ts": $_middleware,
     "./routes/api/ping/[owner]/[repo].ts": $api_ping_owner_repo_,
     "./routes/api/status/[owner]/[repo].ts": $api_status_owner_repo_,
     "./routes/badge/[owner]/[repo].ts": $badge_owner_repo_,

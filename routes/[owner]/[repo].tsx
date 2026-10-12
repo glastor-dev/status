@@ -183,6 +183,29 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             </div>
           </div>
 
+          {/* Aviso de Rate Limit si aplica */}
+          {statusData.isRateLimited && (
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 14px;">
+              <span style="font-size: 1.5rem; line-height: 1;">⏳</span>
+              <div>
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--status-degraded); margin-bottom: 4px;">
+                  Límite de peticiones públicas de GitHub alcanzado (60/hora)
+                </h4>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                  GitHub restablecerá automáticamente la cuota IP en
+                  aproximadamente{" "}
+                  <strong>
+                    {statusData.rateLimitResetMinutes || 25} minutos
+                  </strong>. Para desbloquear{" "}
+                  <strong>5.000 peticiones/hora</strong>{" "}
+                  de inmediato, añade tu variable <code>GITHUB_TOKEN</code>{" "}
+                  en el archivo <code>.env</code>{" "}
+                  local o en el panel de Deno Deploy.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Banner Hero de Estado */}
           <div class={`status-banner ${status}`}>
             <div class="status-indicator">

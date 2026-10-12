@@ -80,6 +80,8 @@ export interface RepoStatusData {
   latestRelease: ReleaseInfo | null;
   historyBars: HistoryDay[];
   recentPings: PingRecord[];
+  isRateLimited?: boolean;
+  rateLimitResetMinutes?: number;
 }
 
 let kvInstance: Deno.Kv | null = null;
@@ -91,11 +93,15 @@ export async function getKv(): Promise<Deno.Kv> {
   return kvInstance;
 }
 
-const CACHE_TTL_MS = 60 * 1000; // 60 seconds TTL
+export function getCacheTtlMs(): number {
+  // If no GITHUB_TOKEN is configured, use 5-minute TTL to preserve unauthenticated IP quota
+  return Deno.env.get("GITHUB_TOKEN") ? 60 * 1000 : 5 * 60 * 1000;
+}
 
 export async function getCachedRepoStatus(
   owner: string,
   repo: string,
+  allowStale = false,
 ): Promise<RepoStatusData | null> {
   const kv = await getKv();
   const key = ["repo_status", owner.toLowerCase(), repo.toLowerCase()];
@@ -105,11 +111,15 @@ export async function getCachedRepoStatus(
     return null;
   }
 
-  // Check if stale
-  const age = Date.now() - (entry.value.cachedAt || 0);
-  if (age > CACHE_TTL_MS) {
-    // Stale, but can still return as fallback if fresh fetch fails
+  // If stale allowed (for fallback during rate limits), return immediately
+  if (allowStale) {
     return entry.value;
+  }
+
+  // Check if fresh
+  const age = Date.now() - (entry.value.cachedAt || 0);
+  if (age > getCacheTtlMs()) {
+    return null; // Expired for normal queries, forces fresh fetch unless allowStale
   }
 
   return entry.value;

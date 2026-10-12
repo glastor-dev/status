@@ -285,23 +285,71 @@ export async function fetchRepoStatus(
 
     return result;
   } catch (error: unknown) {
-    // If rate limited or network failure, check if we have any cached data in KV
-    const cached = await getCachedRepoStatus(normalizedOwner, normalizedRepo);
-    if (cached) {
-      return cached;
+    // 1. Si hay datos cacheados en Deno KV (incluso antiguos), los usamos como fallback
+    const staleCached = await getCachedRepoStatus(
+      normalizedOwner,
+      normalizedRepo,
+      true,
+    );
+    if (staleCached) {
+      staleCached.isRateLimited = true;
+      return staleCached;
     }
 
-    const err = error as { status?: number; message?: string };
+    const err = error as {
+      status?: number;
+      message?: string;
+      response?: { headers?: Record<string, string> };
+    };
+
     if (err.status === 404) {
       throw new Error(
         `El repositorio "${owner}/${repo}" no fue encontrado en GitHub.`,
       );
     }
-    if (err.status === 403) {
-      throw new Error(
-        "Límite de peticiones de GitHub API alcanzado. Configura GITHUB_TOKEN en Deno Deploy para 5.000 peticiones/hora.",
+
+    // 2. Si es rate limit (403/429) y no hay caché, modo degradado de resiliencia
+    if (err.status === 403 || err.status === 429) {
+      const resetHeader = err.response?.headers?.["x-ratelimit-reset"];
+      const resetTimestamp = resetHeader
+        ? Number(resetHeader)
+        : Math.floor(Date.now() / 1000) + 1800;
+      const minutesUntilReset = Math.max(
+        1,
+        Math.ceil((resetTimestamp * 1000 - Date.now()) / 60000),
       );
+
+      const fallbackData: RepoStatusData = {
+        owner: normalizedOwner,
+        repo: normalizedRepo,
+        fullName: `${normalizedOwner}/${normalizedRepo}`,
+        description:
+          "Repositorio público en GitHub (esperando sincronización de cuota de API).",
+        stars: 0,
+        openIssuesCount: 0,
+        defaultBranch: "main",
+        isArchived: false,
+        htmlUrl: `https://github.com/${normalizedOwner}/${normalizedRepo}`,
+        status: "degraded",
+        statusMessage:
+          `Límite de GitHub API alcanzado (60 pet/h). Restablecimiento en ~${minutesUntilReset} min.`,
+        uptimePercentage: 100,
+        lastUpdated: new Date().toISOString(),
+        cachedAt: Date.now(),
+        workflowRuns: [],
+        incidents: [],
+        latestRelease: null,
+        historyBars: generateHistoryDays([], []),
+        recentPings: await getPings(normalizedOwner, normalizedRepo),
+        isRateLimited: true,
+        rateLimitResetMinutes: minutesUntilReset,
+      };
+
+      // Guardar en KV para evitar golpear la API de GitHub mientras dure el bloqueo
+      await saveRepoStatus(fallbackData);
+      return fallbackData;
     }
+
     throw new Error(
       `Error al consultar el estado de "${owner}/${repo}": ${
         err.message || "Error desconocido"

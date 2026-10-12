@@ -7,26 +7,26 @@ const FEATURED_REPOS = [
   {
     owner: "denoland",
     repo: "deno",
-    desc: "A modern runtime for JavaScript and TypeScript.",
+    desc: "Un runtime moderno y seguro para JavaScript y TypeScript.",
     stars: "96k+",
   },
   {
     owner: "facebook",
     repo: "react",
-    desc: "The library for web and native user interfaces.",
+    desc: "La librería para crear interfaces de usuario web y nativas.",
     stars: "230k+",
   },
   {
     owner: "vercel",
     repo: "next.js",
-    desc: "The React Framework for the Web.",
+    desc: "El framework de React para la web.",
     stars: "128k+",
   },
   {
     owner: "glastor-dev",
     repo: "tiandao",
-    desc: "Security-hardened code intelligence & AST generator.",
-    stars: "Featured",
+    desc: "Inteligencia de código con AST seguro y hardening AppSec.",
+    stars: "Destacado",
   },
 ];
 
@@ -36,38 +36,42 @@ export default function Home() {
       <Navbar />
 
       <main>
-        {/* Hero Section */}
+        {/* Sección Hero */}
         <section class="hero container">
           <div class="hero-pill">
-            <span class="hero-pill-badge">NEW</span>
-            <span>Zero-Config Status Page for GitHub</span>
-            <span style="color: var(--brand-cyan);">• Free & Open Source</span>
+            <span class="hero-pill-badge">NUEVO</span>
+            <span>Página de Estado Zero-Config para GitHub</span>
+            <span style="color: var(--brand-cyan);">
+              • Gratis y Open Source
+            </span>
           </div>
 
           <h1 class="hero-title">
-            The Zero-Config Status Page<br />
-            for <span class="gradient-text">Any GitHub Repository</span>
+            La Página de Estado Zero-Config<br />
+            para{" "}
+            <span class="gradient-text">cualquier repositorio de GitHub</span>
           </h1>
 
           <p class="hero-desc">
-            A single button in your README that automatically turns GitHub
-            Actions, releases, and issues into an ultra-fast, real-time status
-            page. No signup. No infrastructure. Instant edge deployment.
+            Un solo botón en tu README que convierte automáticamente los flujos
+            de GitHub Actions, releases e incidencias en una página de estado
+            ultra rápida y en tiempo real. Sin registro. Sin infraestructura.
+            Despliegue instantáneo en el Edge.
           </p>
 
-          {/* Interactive Search & Badge Generator Playground */}
+          {/* Playground interactivo de búsqueda y generación */}
           <RepoSearch initialRepo="denoland/deno" />
         </section>
 
-        {/* Featured Live Repositories */}
-        <section class="container" id="examples" style="padding: 40px 24px;">
+        {/* Repositorios destacados en vivo */}
+        <section class="container" id="ejemplos" style="padding: 40px 24px;">
           <div style="text-align: center; margin-bottom: 32px;">
             <h2 style="font-family: var(--font-display); font-size: 1.85rem; font-weight: 700; margin-bottom: 8px;">
-              Live Showcase Repositories
+              Repositorios en Vivo Destacados
             </h2>
             <p style="color: var(--text-secondary); font-size: 0.95rem;">
-              Click any repository to inspect its live status dashboard and
-              90-day uptime timeline:
+              Haz clic en cualquier repositorio para inspeccionar su panel de
+              estado en vivo y el historial de 90 días:
             </p>
           </div>
 
@@ -104,12 +108,12 @@ export default function Home() {
                 <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
                   <img
                     src={`/badge/${item.owner}/${item.repo}.svg`}
-                    alt="Status badge"
+                    alt="Badge de estado"
                     height="18"
                     style="border-radius: 3px;"
                   />
                   <span style="font-size: 0.8rem; color: var(--brand-cyan); font-weight: 600;">
-                    View Dashboard ↗
+                    Ver Panel ↗
                   </span>
                 </div>
               </a>
@@ -117,22 +121,22 @@ export default function Home() {
           </div>
         </section>
 
-        {/* How It Works in 3 Steps */}
+        {/* Cómo funciona en 3 pasos */}
         <section
           class="container"
-          id="how-it-works"
+          id="como-funciona"
           style="padding: 60px 24px;"
         >
           <div style="text-align: center; margin-bottom: 48px;">
             <div class="hero-pill" style="margin-bottom: 12px;">
-              <span>SIMPLE & EFFORTLESS</span>
+              <span>SIMPLE Y SIN ESFUERZO</span>
             </div>
             <h2 style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; margin-bottom: 12px;">
-              How It Works in 3 Simple Steps
+              Cómo Funciona en 3 Simples Pasos
             </h2>
             <p style="color: var(--text-secondary); font-size: 1.05rem; max-width: 600px; margin: 0 auto;">
-              Turn any public GitHub repository into a production-grade status
-              page in under 30 seconds.
+              Convierte cualquier repositorio público de GitHub en una página de
+              estado de nivel productivo en menos de 30 segundos.
             </p>
           </div>
 
@@ -144,11 +148,12 @@ export default function Home() {
               >
                 01
               </div>
-              <h3 class="feature-title">Add the Status Badge</h3>
+              <h3 class="feature-title">Añade el Badge de Estado</h3>
               <p class="feature-desc">
-                Paste the generated Markdown badge into your repository's{" "}
-                <code>README.md</code>. It immediately renders your live
-                operational health badge to everyone.
+                Pega el badge generado en Markdown dentro del{" "}
+                <code>README.md</code>{" "}
+                de tu proyecto. Mostrará de inmediato el estado operacional en
+                vivo a toda la comunidad.
               </p>
             </div>
 
@@ -159,11 +164,11 @@ export default function Home() {
               >
                 02
               </div>
-              <h3 class="feature-title">Automatic CI/CD Tracking</h3>
+              <h3 class="feature-title">Seguimiento Automático de CI/CD</h3>
               <p class="feature-desc">
-                StatusZero polls GitHub Actions workflow runs, releases, and
-                incident issues, caching metrics in globally distributed Deno KV
-                to avoid GitHub rate limits.
+                StatusZero monitoriza las ejecuciones de GitHub Actions,
+                releases e incidencias, almacenando snapshots en Deno KV
+                distribuido globalmente para evitar rate-limits.
               </p>
             </div>
 
@@ -174,25 +179,25 @@ export default function Home() {
               >
                 03
               </div>
-              <h3 class="feature-title">Instant Status Dashboard</h3>
+              <h3 class="feature-title">Panel de Estado Instantáneo</h3>
               <p class="feature-desc">
-                Clicking the badge opens your dedicated status page: 90-day
-                uptime bars, workflow logs, incident trackers, and RSS/JSON
-                telemetry feeds.
+                Al pulsar en el badge se abre tu página de estado dedicada:
+                barras de uptime de 90 días, registros de flujos de trabajo,
+                seguimiento de incidencias y API JSON.
               </p>
             </div>
           </div>
         </section>
 
-        {/* Features Grid */}
+        {/* Rejilla de características */}
         <section class="container" style="padding: 40px 24px;">
           <div style="text-align: center; margin-bottom: 48px;">
             <h2 style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; margin-bottom: 12px;">
-              Built for Modern DevOps & Open Source
+              Diseñado para DevOps Modernos y Open Source
             </h2>
             <p style="color: var(--text-secondary); font-size: 1.05rem;">
-              Like Vercel Status or Instatus, but free, edge-native, and zero
-              maintenance.
+              Como Vercel Status o Instatus, pero gratis, nativo del Edge y sin
+              mantenimiento.
             </p>
           </div>
 
@@ -210,11 +215,11 @@ export default function Home() {
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
               </div>
-              <h3 class="feature-title">Zero Subscription Costs</h3>
+              <h3 class="feature-title">Cero Costes de Suscripción</h3>
               <p class="feature-desc">
-                Commercial status page providers charge $30–$200/month.
-                StatusZero is free and runs seamlessly on Deno Deploy's generous
-                free tier with zero upkeep.
+                Los servicios tradicionales cobran $30–$200/mes. StatusZero es
+                gratuito y corre perfectamente en la capa free de Deno Deploy
+                sin costes ocultos.
               </p>
             </div>
 
@@ -231,11 +236,11 @@ export default function Home() {
                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                 </svg>
               </div>
-              <h3 class="feature-title">Global Deno KV Caching</h3>
+              <h3 class="feature-title">Caché Global en Deno KV</h3>
               <p class="feature-desc">
-                Snapshot caching in Deno KV protects against GitHub API
-                rate-limiting while serving fresh status data to your users with
-                sub-50ms latency across 35+ global edge locations.
+                El almacenamiento en Deno KV protege contra las limitaciones de
+                peticiones de GitHub y entrega respuestas con latencia inferior
+                a 50ms desde más de 35 ubicaciones edge.
               </p>
             </div>
 
@@ -253,11 +258,11 @@ export default function Home() {
                   <path d="m9 12 2 2 4-4" />
                 </svg>
               </div>
-              <h3 class="feature-title">Dynamic Vector Badges</h3>
+              <h3 class="feature-title">Badges Vectoriales Dinámicos</h3>
               <p class="feature-desc">
-                Crisp SVG status badges rendered in real time. Embed in READMEs,
-                documentation sites, and marketing pages with automated HTTP
-                edge caching.
+                Badges SVG nítidos renderizados en tiempo real. Incrústalas en
+                READMEs, sitios de documentación y páginas web con cabeceras de
+                caché HTTP optimizadas.
               </p>
             </div>
 
@@ -276,11 +281,12 @@ export default function Home() {
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               </div>
-              <h3 class="feature-title">Issue-Driven Incidents</h3>
+              <h3 class="feature-title">Gestión de Incidentes vía Issues</h3>
               <p class="feature-desc">
-                Open an issue in your repo labeled <code>incident</code> or{" "}
-                <code>outage</code>, and StatusZero immediately triggers alert
-                banners and incident timelines on your status page.
+                Abre una issue en tu repositorio con la etiqueta{" "}
+                <code>incident</code> o{" "}
+                <code>outage</code>, y StatusZero activará automáticamente los
+                avisos de alerta y la cronología en tu página.
               </p>
             </div>
 
@@ -299,11 +305,11 @@ export default function Home() {
                   <line x1="9" y1="21" x2="9" y2="9" />
                 </svg>
               </div>
-              <h3 class="feature-title">90-Day Interactive Timeline</h3>
+              <h3 class="feature-title">Línea Temporal de 90 Días</h3>
               <p class="feature-desc">
-                Full 90-day uptime visualization bars with interactive daily
-                tooltips, workflow count, and incident history inspired by
-                industry standards.
+                Barras de visualización de disponibilidad de 90 días con
+                tooltips interactivos diarios, recuento de flujos de trabajo y
+                estados de fiabilidad en vivo.
               </p>
             </div>
 
@@ -321,20 +327,20 @@ export default function Home() {
                   <polyline points="8 6 2 12 8 18" />
                 </svg>
               </div>
-              <h3 class="feature-title">Headless JSON API</h3>
+              <h3 class="feature-title">API REST JSON Headless</h3>
               <p class="feature-desc">
-                Query <code>/api/status/:owner/:repo</code>{" "}
-                anytime for clean, typed JSON data to build internal dashboards,
-                Discord/Slack bots, or custom widgets.
+                Consulta <code>/api/status/:owner/:repo</code>{" "}
+                en cualquier momento para obtener datos JSON estructurados y
+                alimentar bots de Discord/Slack o paneles internos.
               </p>
             </div>
           </div>
         </section>
 
-        {/* GitHub Action Integration Section */}
+        {/* Sección de integración con GitHub Actions */}
         <section
           class="container"
-          id="action-snippet"
+          id="accion-github"
           style="padding: 60px 24px;"
         >
           <div
@@ -347,15 +353,15 @@ export default function Home() {
                   class="hero-pill-badge"
                   style="margin-bottom: 8px; display: inline-block;"
                 >
-                  PRO TELEMETRY
+                  TELEMETRÍA PRO
                 </span>
                 <h2 style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 700;">
-                  Automate Real-Time Heartbeats via GitHub Actions
+                  Automatiza Heartbeats en tiempo real mediante GitHub Actions
                 </h2>
                 <p style="color: var(--text-secondary); font-size: 0.95rem; margin-top: 6px; max-width: 650px;">
-                  Add this simple 3-line step to your existing CI/CD workflow.
-                  Whenever your build passes or fails, it pings StatusZero's
-                  Deno KV edge database immediately!
+                  Añade este sencillo paso de 3 líneas a tu workflow existente
+                  de CI/CD. Cada vez que tu build finalice, enviará un ping
+                  inmediato a la base de datos distribuida en Deno KV.
                 </p>
               </div>
 
@@ -363,19 +369,19 @@ export default function Home() {
                 href="#search-playground"
                 class="btn btn-primary"
               >
-                Generate for My Repo
+                Generar para mi Repositorio
               </a>
             </div>
 
             <div class="code-block" style="background: #060910;">
               <pre>{`# .github/workflows/ci.yml
-name: CI & Status Ping
+name: CI y Ping de Estado
 
 on:
   push:
     branches: [main, master]
   schedule:
-    - cron: '*/30 * * * *' # Optional: periodic uptime check
+    - cron: '*/30 * * * *' # Opcional: comprobación periódica de uptime
 
 jobs:
   test-and-report:
@@ -383,11 +389,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Your existing test / build commands:
+      # Tus comandos de test / build habituales:
       - run: npm test
 
-      # 📡 Push live telemetry to StatusZero:
-      - name: Ping StatusZero
+      # 📡 Enviar telemetría en vivo a StatusZero:
+      - name: Ping a StatusZero
         if: always()
         run: |
           curl -s -X POST https://statuszero.deno.dev/api/ping/\${{ github.repository }} \\

@@ -1,5 +1,4 @@
-// tests/badge_test.ts
-import { assertEquals, assertStringIncludes } from "$std/assert/mod.ts";
+import { assertStringIncludes } from "$std/assert/mod.ts";
 import { generateStatusBadge } from "../services/badge.ts";
 
 Deno.test("generateStatusBadge - operational", () => {

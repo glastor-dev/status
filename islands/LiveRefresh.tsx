@@ -20,7 +20,7 @@ export default function LiveRefresh({ lastUpdatedIso }: LiveRefreshProps) {
 
       setCountdown((prev) => {
         if (prev <= 1) {
-          // Trigger refresh
+          // Disparar recarga
           globalThis.location.reload();
           return 60;
         }
@@ -39,23 +39,23 @@ export default function LiveRefresh({ lastUpdatedIso }: LiveRefreshProps) {
   };
 
   const formatAgo = (s: number) => {
-    if (s < 10) return "just now";
-    if (s < 60) return `${s}s ago`;
+    if (s < 10) return "hace un momento";
+    if (s < 60) return `hace ${s}s`;
     const m = Math.floor(s / 60);
-    return `${m}m ago`;
+    return `hace ${m}m`;
   };
 
   return (
     <div style="display: flex; align-items: center; gap: 12px; font-size: 0.82rem; color: var(--text-muted);">
       <span>
-        Updated{" "}
+        Actualizado{" "}
         <strong style="color: var(--text-secondary);">
           {formatAgo(secondsAgo)}
         </strong>
       </span>
       <span>•</span>
       <span>
-        Auto-refreshes in{" "}
+        Auto-refresco en{" "}
         <strong style="color: var(--text-secondary);">{countdown}s</strong>
       </span>
       <button
@@ -64,7 +64,7 @@ export default function LiveRefresh({ lastUpdatedIso }: LiveRefreshProps) {
         disabled={isRefreshing}
         class="btn btn-secondary btn-sm"
         style="padding: 4px 10px; font-size: 0.78rem;"
-        title="Check GitHub for live updates"
+        title="Consultar GitHub para actualizaciones en vivo"
       >
         <svg
           width="13"
@@ -82,7 +82,7 @@ export default function LiveRefresh({ lastUpdatedIso }: LiveRefreshProps) {
           <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
           <path d="M16 21h5v-5" />
         </svg>
-        <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+        <span>{isRefreshing ? "Actualizando..." : "Actualizar"}</span>
       </button>
       <style>
         {`

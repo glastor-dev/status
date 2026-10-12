@@ -231,22 +231,22 @@ export async function fetchRepoStatus(
     const failedRecent = recentRuns.filter((r) => r.conclusion === "failure");
 
     let status: RepoStatusData["status"] = "operational";
-    let statusMessage = "All Systems & Workflows Operational";
+    let statusMessage = "Todos los sistemas y flujos operacionales";
 
     if (openIncidents.length > 0) {
       status = "outage";
-      statusMessage = `Active Incident: ${openIncidents[0].title}`;
+      statusMessage = `Incidente activo: ${openIncidents[0].title}`;
     } else if (failedRecent.length > 0) {
       if (failedRecent.length > recentRuns.length / 2) {
         status = "outage";
-        statusMessage = "Critical CI/CD Failures Detected";
+        statusMessage = "Fallos críticos en pipelines de CI/CD detectados";
       } else {
         status = "degraded";
-        statusMessage = "Partial Workflow Degradation";
+        statusMessage = "Degradación parcial en flujos de trabajo";
       }
     } else if (recentRuns.length === 0) {
       status = "operational";
-      statusMessage = "Operational • No CI Incidents";
+      statusMessage = "Operacional • Sin incidencias en CI/CD";
     }
 
     // Compute uptime percentage across the history days
@@ -262,7 +262,7 @@ export async function fetchRepoStatus(
       owner: repoData.owner.login,
       repo: repoData.name,
       fullName: repoData.full_name,
-      description: repoData.description || "No description provided.",
+      description: repoData.description || "Sin descripción proporcionada.",
       stars: repoData.stargazers_count,
       openIssuesCount: repoData.open_issues_count,
       defaultBranch: repoData.default_branch,
@@ -293,16 +293,18 @@ export async function fetchRepoStatus(
 
     const err = error as { status?: number; message?: string };
     if (err.status === 404) {
-      throw new Error(`Repository "${owner}/${repo}" was not found on GitHub.`);
+      throw new Error(
+        `El repositorio "${owner}/${repo}" no fue encontrado en GitHub.`,
+      );
     }
     if (err.status === 403) {
       throw new Error(
-        "GitHub API rate limit exceeded. Configure GITHUB_TOKEN on Deno Deploy for 5,000 requests/hour.",
+        "Límite de peticiones de GitHub API alcanzado. Configura GITHUB_TOKEN en Deno Deploy para 5.000 peticiones/hora.",
       );
     }
     throw new Error(
-      `Failed to fetch status for "${owner}/${repo}": ${
-        err.message || "Unknown error"
+      `Error al consultar el estado de "${owner}/${repo}": ${
+        err.message || "Error desconocido"
       }`,
     );
   }

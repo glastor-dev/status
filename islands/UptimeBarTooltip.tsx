@@ -29,13 +29,26 @@ export default function UptimeBarTooltip({
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr + "T00:00:00");
-      return d.toLocaleDateString("en-US", {
+      return d.toLocaleDateString("es-ES", {
         month: "short",
         day: "numeric",
         year: "numeric",
       });
     } catch (_err) {
       return dateStr;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "operational":
+        return "Operacional";
+      case "degraded":
+        return "Degradado";
+      case "outage":
+        return "Interrupción del servicio";
+      default:
+        return "Sin actividad";
     }
   };
 
@@ -55,18 +68,21 @@ export default function UptimeBarTooltip({
                       ? "var(--status-degraded)"
                       : "var(--status-outage)",
                     fontWeight: 600,
-                    textTransform: "capitalize",
                   }}
                 >
-                  {hoveredDay.status}
+                  {getStatusText(hoveredDay.status)}
                 </span>{" "}
-                ({hoveredDay.uptimePercent}% uptime
+                ({hoveredDay.uptimePercent}% de disponibilidad
                 {hoveredDay.totalRuns > 0
-                  ? `, ${hoveredDay.totalRuns} CI runs`
+                  ? `, ${hoveredDay.totalRuns} flujos de CI`
                   : ""})
               </span>
             )
-            : <span>90-Day System Uptime History</span>}
+            : (
+              <span>
+                Historial de disponibilidad y uptime (últimos 90 días)
+              </span>
+            )}
         </span>
 
         <span style="font-size: 0.88rem; font-weight: 700; color: var(--status-operational);">
@@ -83,17 +99,19 @@ export default function UptimeBarTooltip({
             key={day.date}
             class={`uptime-bar-col ${getBarClass(day)}`}
             onMouseEnter={() => setHoveredDay(day)}
-            title={`${day.date}: ${day.status} (${day.uptimePercent}%)`}
+            title={`${day.date}: ${
+              getStatusText(day.status)
+            } (${day.uptimePercent}%)`}
           />
         ))}
       </div>
 
       <div class="uptime-timeline-labels">
-        <span>90 days ago</span>
+        <span>Hace 90 días</span>
         <span style="color: var(--text-muted); font-size: 0.75rem;">
-          Hover over bars for daily breakdown
+          Pasa el cursor sobre las barras para ver el detalle diario
         </span>
-        <span>Today</span>
+        <span>Hoy</span>
       </div>
     </div>
   );

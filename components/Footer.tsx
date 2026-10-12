@@ -5,11 +5,11 @@ export function Footer() {
       <div class="container footer-inner">
         <div>
           <p style="font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">
-            StatusZero — Zero-Config Status Pages for GitHub
+            StatusZero — Páginas de estado Zero-Config para GitHub
           </p>
           <p>
-            An open-source alternative to Vercel Status and Instatus.
-            Self-hostable on Deno Deploy.
+            Alternativa open-source a Vercel Status e Instatus. Autoalojable en
+            Deno Deploy con coste cero.
           </p>
         </div>
 

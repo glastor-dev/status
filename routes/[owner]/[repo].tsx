@@ -28,7 +28,7 @@ export const handler: Handlers<StatusPageData> = {
     } catch (err: unknown) {
       const message = err instanceof Error
         ? err.message
-        : "Error fetching repository status";
+        : "Error al consultar el estado del repositorio";
       return ctx.render({ statusData: null, error: message, owner, repo });
     }
   },
@@ -48,14 +48,15 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
           >
             <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
             <h1 style="font-family: var(--font-display); font-size: 1.75rem; margin-bottom: 12px;">
-              Could not load status for {owner}/{repo}
+              No se pudo cargar el estado de {owner}/{repo}
             </h1>
             <p style="color: var(--text-secondary); margin-bottom: 24px;">
-              {error || "Repository was not found or is currently private."}
+              {error ||
+                "El repositorio no fue encontrado o actualmente es privado."}
             </p>
             <div style="display: flex; gap: 12px; justify-content: center;">
               <a href="/" class="btn btn-primary">
-                Return to Home
+                Volver al Inicio
               </a>
               <a
                 href={`https://github.com/${owner}/${repo}`}
@@ -63,7 +64,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                 rel="noopener noreferrer"
                 class="btn btn-secondary"
               >
-                Open on GitHub ↗
+                Abrir en GitHub ↗
               </a>
             </div>
           </div>
@@ -88,7 +89,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
     historyBars,
   } = statusData;
 
-  // Calculate CI success rate
+  // Calcular porcentaje de éxito de CI
   const totalRuns = workflowRuns.length;
   const successfulRuns =
     workflowRuns.filter((r) => r.conclusion === "success").length;
@@ -106,7 +107,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
   const formatDate = (isoStr: string) => {
     try {
       const d = new Date(isoStr);
-      return d.toLocaleDateString("en-US", {
+      return d.toLocaleDateString("es-ES", {
         month: "short",
         day: "numeric",
         hour: "2-digit",
@@ -122,13 +123,13 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
       <Navbar />
 
       <main class="container" style="padding-bottom: 80px;">
-        {/* Repo Identity Header */}
+        {/* Encabezado del repositorio */}
         <div class="status-header">
           <div class="repo-identity">
             <div class="repo-titles">
               <img
                 src={`https://github.com/${owner}.png`}
-                alt={`${owner} avatar`}
+                alt={`Avatar de ${owner}`}
                 class="repo-avatar"
               />
               <div>
@@ -137,7 +138,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                     href={`https://github.com/${owner}/${repo}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="View repository on GitHub"
+                    title="Ver repositorio en GitHub"
                     style="display: inline-flex; align-items: center; gap: 8px;"
                   >
                     <span>{fullName}</span>
@@ -166,16 +167,18 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             </div>
           </div>
 
-          {/* Status Hero Banner */}
+          {/* Banner Hero de Estado */}
           <div class={`status-banner ${status}`}>
             <div class="status-indicator">
               <div class="status-dot-pulse" />
               <div>
                 <div class="status-title">
-                  {status === "operational" && "All Systems Operational"}
-                  {status === "degraded" && "Partial System Degradation"}
-                  {status === "outage" && "Service Outage / Active Issues"}
-                  {status === "unknown" && "Status Unknown"}
+                  {status === "operational" &&
+                    "Todos los sistemas operacionales"}
+                  {status === "degraded" && "Degradación parcial del sistema"}
+                  {status === "outage" &&
+                    "Interrupción del servicio / Incidencias activas"}
+                  {status === "unknown" && "Estado desconocido"}
                 </div>
                 <div class="status-subtitle">{statusMessage}</div>
               </div>
@@ -186,11 +189,11 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                 href={`/badge/${owner}/${repo}.svg`}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Direct SVG badge"
+                title="Badge SVG directo"
               >
                 <img
                   src={`/badge/${owner}/${repo}.svg`}
-                  alt="Live badge"
+                  alt="Badge en vivo"
                   height="22"
                   style="border-radius: 4px;"
                 />
@@ -199,21 +202,23 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
           </div>
         </div>
 
-        {/* 4 Metric Cards */}
+        {/* 4 Tarjetas de Métricas Clave */}
         <div class="metrics-grid">
           <div class="metric-card">
-            <span class="metric-label">90-Day Uptime</span>
+            <span class="metric-label">Disponibilidad (90 días)</span>
             <span
               class="metric-value"
               style="color: var(--status-operational);"
             >
               {uptimePercentage}%
             </span>
-            <span class="metric-sub">Across all workflow runs & checks</span>
+            <span class="metric-sub">
+              En todas las ejecuciones y comprobaciones
+            </span>
           </div>
 
           <div class="metric-card">
-            <span class="metric-label">CI / CD Health</span>
+            <span class="metric-label">Salud de CI / CD</span>
             <span
               class="metric-value"
               style={{
@@ -225,12 +230,12 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
               {ciSuccessRate}%
             </span>
             <span class="metric-sub">
-              {successfulRuns} passed / {totalRuns} recent workflows
+              {successfulRuns} exitosos de {totalRuns} flujos recientes
             </span>
           </div>
 
           <div class="metric-card">
-            <span class="metric-label">Active Incidents</span>
+            <span class="metric-label">Incidencias Activas</span>
             <span
               class="metric-value"
               style={{
@@ -242,12 +247,12 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
               {incidents.filter((i) => i.state === "open").length}
             </span>
             <span class="metric-sub">
-              {openIssuesCount} total open issues on GitHub
+              {openIssuesCount} issues abiertas en GitHub
             </span>
           </div>
 
           <div class="metric-card">
-            <span class="metric-label">Latest Release</span>
+            <span class="metric-label">Última Versión</span>
             <span
               class="metric-value"
               style="font-size: 1.4rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
@@ -257,17 +262,17 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             <span class="metric-sub">
               {latestRelease
                 ? formatDate(latestRelease.publishedAt)
-                : "Continuous Deployment"}
+                : "Despliegue Continuo"}
             </span>
           </div>
         </div>
 
-        {/* 90-Day Timeline Section */}
+        {/* Sección de Historial de 90 días */}
         <section class="section-card">
           <div class="section-title-row">
-            <h2 class="section-title">System Reliability & History</h2>
+            <h2 class="section-title">Fiabilidad del Sistema e Historial</h2>
             <span style="font-size: 0.85rem; color: var(--text-muted);">
-              ⭐️ {stars.toLocaleString()} Stars on GitHub
+              ⭐️ {stars.toLocaleString()} Estrellas en GitHub
             </span>
           </div>
           <UptimeBarTooltip
@@ -276,19 +281,22 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
           />
         </section>
 
-        {/* Workflow Runs Timeline */}
+        {/* Lista de Flujos de GitHub Actions */}
         <section class="section-card">
           <div class="section-title-row">
-            <h2 class="section-title">Recent CI/CD & Deploy Workflows</h2>
+            <h2 class="section-title">
+              Flujos de CI/CD y Despliegues Recientes
+            </h2>
             <span style="font-size: 0.85rem; color: var(--text-muted);">
-              Powered by GitHub Actions
+              Potenciado por GitHub Actions
             </span>
           </div>
 
           {workflowRuns.length === 0
             ? (
               <div style="padding: 24px; text-align: center; color: var(--text-secondary); background: var(--bg-surface-elevated); border-radius: 8px;">
-                No public GitHub Actions runs found for this repository.
+                No se encontraron ejecuciones públicas de GitHub Actions para
+                este repositorio.
               </div>
             )
             : (
@@ -363,7 +371,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                             </a>
                             <span class="commit-badge">#{run.runNumber}</span>
                             <span style="font-size: 0.78rem; color: var(--text-muted);">
-                              on {run.branch}
+                              en {run.branch}
                             </span>
                           </div>
 
@@ -375,7 +383,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                               <span class="commit-badge">{run.commitSha}</span>
                             )}
                             <span style="color: var(--text-muted);">
-                              by {run.author.name}
+                              por {run.author.name}
                             </span>
                           </div>
                         </div>
@@ -394,10 +402,12 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             )}
         </section>
 
-        {/* Incidents & Tracker */}
+        {/* Seguimiento de Incidentes */}
         <section class="section-card">
           <div class="section-title-row">
-            <h2 class="section-title">Incident & Outage History</h2>
+            <h2 class="section-title">
+              Historial de Incidentes e Interrupciones
+            </h2>
             <a
               href={`https://github.com/${owner}/${repo}/issues`}
               target="_blank"
@@ -405,15 +415,15 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
               class="btn btn-ghost btn-sm"
               style="font-size: 0.8rem;"
             >
-              View GitHub Issues ↗
+              Ver Issues en GitHub ↗
             </a>
           </div>
 
           {incidents.length === 0
             ? (
               <div style="padding: 24px; text-align: center; color: var(--text-secondary); background: var(--bg-surface-elevated); border-radius: 8px;">
-                ✨ No active or past incidents recorded in the repository. All
-                systems operational.
+                ✨ No hay incidencias activas ni pasadas registradas en el
+                repositorio. Todos los sistemas funcionan con normalidad.
               </div>
             )
             : (
@@ -440,7 +450,7 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                               }`,
                             }}
                           >
-                            {isOpen ? "Active Outage" : "Resolved"}
+                            {isOpen ? "Incidente Activo" : "Resuelto"}
                           </span>
                           <a
                             href={incident.htmlUrl}
@@ -454,8 +464,8 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
 
                         <span style="font-size: 0.8rem; color: var(--text-muted);">
                           {isOpen
-                            ? `Opened ${formatDate(incident.createdAt)}`
-                            : `Resolved ${
+                            ? `Abierto ${formatDate(incident.createdAt)}`
+                            : `Resuelto ${
                               formatDate(
                                 incident.closedAt || incident.updatedAt,
                               )
@@ -475,22 +485,22 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             )}
         </section>
 
-        {/* Automated Telemetry Ping Step Box */}
+        {/* Paso de Telemetría Automatizada */}
         <section class="section-card" style="border-style: dashed;">
           <div class="section-title-row">
             <div>
               <h2 class="section-title" style="font-size: 1.1rem;">
-                ⚡ Optional: Automated CI Heartbeat Telemetry
+                ⚡ Opcional: Telemetría de Heartbeat Automatizada en CI
               </h2>
               <p style="font-size: 0.86rem; color: var(--text-secondary); margin-top: 4px;">
-                Want instant real-time telemetry whenever your GitHub Action
-                completes? Add this 3-line step to your workflow:
+                ¿Deseas telemetría en tiempo real al finalizar tu GitHub Action?
+                Añade este sencillo paso de 3 líneas a tu workflow:
               </p>
             </div>
           </div>
 
           <div class="code-block">
-            <pre>{`- name: 📡 Report Telemetry to StatusZero
+            <pre>{`- name: 📡 Reportar Telemetría a StatusZero
   if: always()
   run: |
     curl -s -X POST https://statuszero.deno.dev/api/ping/${owner}/${repo} \\

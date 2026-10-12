@@ -2,16 +2,16 @@ import { type PageProps } from "$fresh/server.ts";
 
 export default function App({ Component }: PageProps) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>
-          StatusZero — Zero-Config Status Pages for GitHub Repositories
+          StatusZero — Páginas de estado Zero-Config para repositorios de GitHub
         </title>
         <meta
           name="description"
-          content="Instant, zero-config status page and uptime badge for any GitHub repository. Powered by Deno Deploy, Deno KV and GitHub Actions."
+          content="Página de estado instantánea y badge de uptime zero-config para cualquier repositorio de GitHub. Potenciado por Deno Deploy, Deno KV y GitHub Actions."
         />
         <meta name="theme-color" content="#0a0d14" />
 
@@ -19,15 +19,15 @@ export default function App({ Component }: PageProps) {
         <meta property="og:type" content="website" />
         <meta
           property="og:title"
-          content="StatusZero — Zero-Config Status Pages for GitHub"
+          content="StatusZero — Páginas de estado Zero-Config para GitHub"
         />
         <meta
           property="og:description"
-          content="A badge that automatically generates a real-time status page for your repository. Free, open source and zero-config."
+          content="Un botón que genera automáticamente una página de estado en tiempo real para tu repositorio. Gratis, open source y zero-config."
         />
         <meta property="twitter:card" content="summary_large_image" />
 
-        {/* Fonts */}
+        {/* Fuentes */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

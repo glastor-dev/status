@@ -4,7 +4,12 @@ export function Navbar() {
     <header class="navbar">
       <div class="container navbar-inner">
         <a href="/" class="logo-link">
-          <img src="/logo.svg" alt="StatusZero Logo" width="32" height="32" />
+          <img
+            src="/logo.svg"
+            alt="Logo de StatusZero"
+            width="32"
+            height="32"
+          />
           <span>
             Status<span class="gradient-text">Zero</span>
           </span>
@@ -12,9 +17,9 @@ export function Navbar() {
         </a>
 
         <nav class="nav-links">
-          <a href="/#how-it-works" class="nav-link">How it works</a>
-          <a href="/#examples" class="nav-link">Examples</a>
-          <a href="/#action-snippet" class="nav-link">GitHub Action</a>
+          <a href="/#como-funciona" class="nav-link">Cómo funciona</a>
+          <a href="/#ejemplos" class="nav-link">Ejemplos</a>
+          <a href="/#accion-github" class="nav-link">GitHub Action</a>
           <a
             href="https://github.com"
             target="_blank"
@@ -32,7 +37,7 @@ export function Navbar() {
             rel="noopener noreferrer"
             class="btn btn-primary btn-sm"
           >
-            Deploy on Deno
+            Desplegar en Deno
           </a>
         </nav>
       </div>

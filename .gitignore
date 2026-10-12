@@ -1,11 +1,38 @@
-# dotenv environment variable files
+# dotenv environment variable files (defensive rules)
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.*
+!.env.example
+*.env
+*.env.local
+*.env.*.local
 
-# Fresh build directory
+# Fresh & Deno build artifacts
 _fresh/
+.deno/
+deno.lock
+
 # npm dependencies
 node_modules/
+vendor/
+
+# Local Deno KV databases and SQLite temp files
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.kv
+
+# Private keys, certificates and credentials
+*.pem
+*.key
+*.cert
+*.pfx
+*.crt
+id_rsa*
+
+# OS and IDE caches
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

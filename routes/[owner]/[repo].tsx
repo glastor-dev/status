@@ -15,12 +15,17 @@ interface StatusPageData {
   error?: string;
   owner: string;
   repo: string;
+  isEmbed?: boolean;
 }
 
 export const handler: Handlers<StatusPageData> = {
   async GET(req: Request, ctx: FreshContext) {
     const owner = ctx.params.owner;
     const repo = ctx.params.repo;
+
+    const url = new URL(req.url);
+    const isEmbed = url.searchParams.get("view") === "embed" ||
+      url.searchParams.get("embed") === "true";
 
     // AppSec: Strict input validation against traversal/SSRF
     if (!isValidGitHubIdentifier(owner) || !isValidGitHubIdentifier(repo)) {
@@ -30,30 +35,50 @@ export const handler: Handlers<StatusPageData> = {
           error: "Identificador de repositorio o propietario inválido.",
           owner,
           repo,
+          isEmbed,
         },
         { status: 400 },
       );
     }
 
-    const url = new URL(req.url);
     const forceRefresh = url.searchParams.get("refresh") === "true";
 
     try {
       const data = await fetchRepoStatus(owner, repo, forceRefresh);
-      return ctx.render({ statusData: data, owner, repo });
+      return ctx.render({ statusData: data, owner, repo, isEmbed });
     } catch (err: unknown) {
       const message = err instanceof Error
         ? err.message
         : "Error al consultar el estado del repositorio";
-      return ctx.render({ statusData: null, error: message, owner, repo });
+      return ctx.render({
+        statusData: null,
+        error: message,
+        owner,
+        repo,
+        isEmbed,
+      });
     }
   },
 };
 
 export default function StatusPage({ data }: PageProps<StatusPageData>) {
-  const { statusData, error, owner, repo } = data;
+  const { statusData, error, owner, repo, isEmbed } = data;
 
   if (error || !statusData) {
+    if (isEmbed) {
+      return (
+        <div class="embed-card" style="text-align: center; padding: 24px;">
+          <div style="font-size: 2rem; margin-bottom: 8px;">⚠️</div>
+          <div style="font-weight: 700; margin-bottom: 6px;">
+            {owner}/{repo}
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">
+            {error || "No se pudo cargar el estado del repositorio."}
+          </p>
+        </div>
+      );
+    }
+
     return (
       <>
         <Navbar />
@@ -87,6 +112,68 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
         </main>
         <Footer />
       </>
+    );
+  }
+
+  // Vista compacta para iframes (?view=embed)
+  if (isEmbed) {
+    return (
+      <div class="embed-card">
+        <div class="embed-header">
+          <div class="embed-title">
+            <span style="font-size: 1.25rem;">📊</span>
+            <a
+              href={`https://github.com/${owner}/${repo}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style="color: var(--text-primary); text-decoration: underline;"
+            >
+              {owner}/{repo}
+            </a>
+            <a
+              href={`/badge/${owner}/${repo}.svg`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src={`/badge/${owner}/${repo}.svg`}
+                alt="Estado"
+                height="20"
+                style="border-radius: 4px;"
+              />
+            </a>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--status-operational);">
+            {statusData.uptimePercentage}% Uptime
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <UptimeBarTooltip
+            historyBars={statusData.historyBars}
+            overallUptimePercent={statusData.uptimePercentage}
+          />
+        </div>
+
+        <div class="embed-footer">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>{statusData.statusMessage}</span>
+            {typeof statusData.averageLatencyMs === "number" && (
+              <span class="latency-badge">
+                ⚡ {statusData.averageLatencyMs}ms
+              </span>
+            )}
+          </div>
+          <a
+            href={`/${owner}/${repo}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style="color: var(--brand-cyan); font-weight: 600;"
+          >
+            StatusZero ↗
+          </a>
+        </div>
+      </div>
     );
   }
 
@@ -178,7 +265,29 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             </div>
 
             <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
-              <BadgeCopier owner={owner} repo={repo} />
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                <a
+                  href={`/rss/${owner}/${repo}.xml`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-ghost btn-sm"
+                  style="font-size: 0.8rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;"
+                  title="Suscripción RSS oficial de incidentes y estado"
+                >
+                  <span>📡</span> Feed RSS
+                </a>
+                <a
+                  href={`/${owner}/${repo}?view=embed`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn btn-ghost btn-sm"
+                  style="font-size: 0.8rem; padding: 6px 12px; display: inline-flex; align-items: center; gap: 6px;"
+                  title="Vista previa del widget embebible en iframe"
+                >
+                  <span>📦</span> Embed
+                </a>
+                <BadgeCopier owner={owner} repo={repo} />
+              </div>
               <LiveRefresh lastUpdatedIso={lastUpdated} />
             </div>
           </div>
@@ -304,6 +413,21 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
                 : "Despliegue Continuo"}
             </span>
           </div>
+
+          {typeof statusData.averageLatencyMs === "number" && (
+            <div class="metric-card">
+              <span class="metric-label">Latencia de Red / API</span>
+              <span
+                class="metric-value"
+                style="color: var(--brand-cyan);"
+              >
+                ⚡ {statusData.averageLatencyMs} ms
+              </span>
+              <span class="metric-sub">
+                {statusData.recentPings.length} telemetrías registradas
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Sección de Historial de 90 días */}
@@ -524,27 +648,90 @@ export default function StatusPage({ data }: PageProps<StatusPageData>) {
             )}
         </section>
 
-        {/* Paso de Telemetría Automatizada */}
+        {/* Integraciones Avanzadas y Telemetría */}
         <section class="section-card" style="border-style: dashed;">
           <div class="section-title-row">
             <div>
-              <h2 class="section-title" style="font-size: 1.1rem;">
-                ⚡ Opcional: Telemetría de Heartbeat Automatizada en CI
+              <h2 class="section-title" style="font-size: 1.15rem;">
+                ⚡ Integraciones Avanzadas: Telemetría, Webhooks y Embed
               </h2>
               <p style="font-size: 0.86rem; color: var(--text-secondary); margin-top: 4px;">
-                ¿Deseas telemetría en tiempo real al finalizar tu GitHub Action?
-                Añade este sencillo paso de 3 líneas a tu workflow:
+                Personaliza la monitorización en tiempo real, bloquea el acceso
+                con tokens secretos o embebe el widget en tu documentación.
               </p>
             </div>
           </div>
 
-          <div class="code-block">
-            <pre>{`- name: 📡 Reportar Telemetría a StatusZero
+          <div style="display: grid; gap: 20px; margin-top: 16px;">
+            {/* Opción 1: GitHub Actions con Token Secreto */}
+            <div>
+              <h3 style="font-size: 0.92rem; font-weight: 600; color: var(--brand-cyan); margin-bottom: 8px;">
+                1. 📡 Telemetría desde GitHub Actions (con autenticación
+                opcional)
+              </h3>
+              <div class="code-block">
+                <pre>{`- name: 📡 Reportar Telemetría a StatusZero
   if: always()
   run: |
     curl -s -X POST https://statuszero.deno.dev/api/ping/${owner}/${repo} \\
       -H "Content-Type: application/json" \\
+      -H "Authorization: Bearer \${{ secrets.STATUSZERO_TOKEN }}" \\
       -d '{"workflow":"\${{ github.workflow }}","status":"\${{ job.status }}","branch":"\${{ github.ref_name }}","commit":"\${{ github.sha }}"}'`}</pre>
+              </div>
+            </div>
+
+            {/* Opción 2: Synthetic Healthcheck con Latencia HTTP */}
+            <div>
+              <h3 style="font-size: 0.92rem; font-weight: 600; color: var(--status-operational); margin-bottom: 8px;">
+                2. ⏱ Monitoreo Sintético con Latencia de Red (ms)
+              </h3>
+              <div class="code-block">
+                <pre>{`- name: ⏱ Synthetic Ping con Latencia HTTP
+  run: |
+    URL="https://api.tu-app.com/health"
+    TIME_SEC=$(curl -o /dev/null -s -w "%{time_total}" "$URL")
+    HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" "$URL")
+    LATENCY_MS=$(awk "BEGIN {print int($TIME_SEC * 1000)}")
+    curl -s -X POST https://statuszero.deno.dev/api/ping/${owner}/${repo} \\
+      -H "Content-Type: application/json" \\
+      -d "{\\"workflow\\":\\"Healthcheck\\",\\"status\\":\\"success\\",\\"latencyMs\\":$LATENCY_MS,\\"httpStatus\\":$HTTP_CODE,\\"endpoint\\":\\"$URL\\"}"`}</pre>
+              </div>
+            </div>
+
+            {/* Opción 3: GitHub Webhook (0 llamadas a la API) */}
+            <div>
+              <h3 style="font-size: 0.92rem; font-weight: 600; color: var(--brand-indigo); margin-bottom: 8px;">
+                3. 🚀 Webhook Nativo de GitHub (Cero cuota de API,
+                sincronización Push)
+              </h3>
+              <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 8px;">
+                En GitHub ➔ Tu Repo ➔{" "}
+                <strong>Settings ➔ Webhooks ➔ Add webhook</strong>:
+              </p>
+              <div class="code-block">
+                <pre>{`Payload URL: https://statuszero.deno.dev/api/webhook/github
+Content type: application/json
+Events: Workflow runs, Issues, Releases`}</pre>
+              </div>
+            </div>
+
+            {/* Opción 4: Widget Iframe Embed */}
+            <div>
+              <h3 style="font-size: 0.92rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px;">
+                4. 📦 Snippet Iframe para Documentación (VitePress, Astro,
+                Readme)
+              </h3>
+              <div class="code-block">
+                <pre>{`<iframe
+  src="https://statuszero.deno.dev/${owner}/${repo}?view=embed"
+  width="100%"
+  height="160"
+  frameborder="0"
+  scrolling="no"
+  style="border-radius: 12px; border: none; overflow: hidden;"
+></iframe>`}</pre>
+              </div>
+            </div>
           </div>
         </section>
       </main>

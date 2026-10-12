@@ -58,6 +58,9 @@ export interface PingRecord {
   commit?: string;
   status?: "success" | "failure" | "in_progress";
   message?: string;
+  latencyMs?: number;
+  endpoint?: string;
+  httpStatus?: number;
 }
 
 export interface RepoStatusData {
@@ -80,6 +83,8 @@ export interface RepoStatusData {
   latestRelease: ReleaseInfo | null;
   historyBars: HistoryDay[];
   recentPings: PingRecord[];
+  averageLatencyMs?: number;
+  lastPingLatencyMs?: number;
   isRateLimited?: boolean;
   rateLimitResetMinutes?: number;
 }
@@ -173,4 +178,46 @@ export async function getPings(
   const pingsKey = ["repo_pings", owner.toLowerCase(), repo.toLowerCase()];
   const existing = await kv.get<PingRecord[]>(pingsKey);
   return existing.value || [];
+}
+
+/**
+ * Retrieves the optional webhook/ping authentication secret for a repository.
+ * Returns the repository-specific secret if set, or the global PING_SECRET.
+ */
+export async function getRepoPingSecret(
+  owner: string,
+  repo: string,
+): Promise<string | null> {
+  const kv = await getKv();
+  const key = ["repo_ping_secret", owner.toLowerCase(), repo.toLowerCase()];
+  const entry = await kv.get<string>(key);
+  if (entry.value) {
+    return entry.value;
+  }
+  return Deno.env.get("PING_SECRET") || null;
+}
+
+/**
+ * Persists a repository-specific ping/webhook secret in Deno KV.
+ */
+export async function setRepoPingSecret(
+  owner: string,
+  repo: string,
+  secret: string,
+): Promise<void> {
+  const kv = await getKv();
+  const key = ["repo_ping_secret", owner.toLowerCase(), repo.toLowerCase()];
+  await kv.set(key, secret.trim());
+}
+
+/**
+ * Invalidates cached repository status, forcing immediate refresh on next fetch.
+ */
+export async function invalidateRepoCache(
+  owner: string,
+  repo: string,
+): Promise<void> {
+  const kv = await getKv();
+  const key = ["repo_status", owner.toLowerCase(), repo.toLowerCase()];
+  await kv.delete(key);
 }

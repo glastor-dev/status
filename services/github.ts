@@ -258,6 +258,18 @@ export async function fetchRepoStatus(
     const uptimePercentage =
       Math.round((totalUptimeSum / historyBars.length) * 100) / 100;
 
+    // Compute latency metrics if pings contain latency reports
+    const pingsWithLatency = recentPings.filter(
+      (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
+    );
+    const averageLatencyMs = pingsWithLatency.length > 0
+      ? Math.round(
+        pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
+          pingsWithLatency.length,
+      )
+      : undefined;
+    const lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
+
     const result: RepoStatusData = {
       owner: repoData.owner.login,
       repo: repoData.name,
@@ -278,6 +290,8 @@ export async function fetchRepoStatus(
       latestRelease,
       historyBars,
       recentPings,
+      averageLatencyMs,
+      lastPingLatencyMs,
     };
 
     // Save to Deno KV
@@ -293,6 +307,20 @@ export async function fetchRepoStatus(
     );
     if (staleCached) {
       staleCached.isRateLimited = true;
+      staleCached.recentPings = await getPings(
+        normalizedOwner,
+        normalizedRepo,
+      );
+      const pingsWithLatency = staleCached.recentPings.filter(
+        (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
+      );
+      staleCached.averageLatencyMs = pingsWithLatency.length > 0
+        ? Math.round(
+          pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
+            pingsWithLatency.length,
+        )
+        : undefined;
+      staleCached.lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
       return staleCached;
     }
 
@@ -319,6 +347,18 @@ export async function fetchRepoStatus(
         Math.ceil((resetTimestamp * 1000 - Date.now()) / 60000),
       );
 
+      const recentPings = await getPings(normalizedOwner, normalizedRepo);
+      const pingsWithLatency = recentPings.filter(
+        (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
+      );
+      const averageLatencyMs = pingsWithLatency.length > 0
+        ? Math.round(
+          pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
+            pingsWithLatency.length,
+        )
+        : undefined;
+      const lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
+
       const fallbackData: RepoStatusData = {
         owner: normalizedOwner,
         repo: normalizedRepo,
@@ -340,7 +380,9 @@ export async function fetchRepoStatus(
         incidents: [],
         latestRelease: null,
         historyBars: generateHistoryDays([], []),
-        recentPings: await getPings(normalizedOwner, normalizedRepo),
+        recentPings,
+        averageLatencyMs,
+        lastPingLatencyMs,
         isRateLimited: true,
         rateLimitResetMinutes: minutesUntilReset,
       };

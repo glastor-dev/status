@@ -8,8 +8,10 @@ import * as $_app from "./routes/_app.tsx";
 import * as $_middleware from "./routes/_middleware.ts";
 import * as $api_ping_owner_repo_ from "./routes/api/ping/[owner]/[repo].ts";
 import * as $api_status_owner_repo_ from "./routes/api/status/[owner]/[repo].ts";
+import * as $api_webhook_github from "./routes/api/webhook/github.ts";
 import * as $badge_owner_repo_ from "./routes/badge/[owner]/[repo].ts";
 import * as $index from "./routes/index.tsx";
+import * as $rss_owner_repo_ from "./routes/rss/[owner]/[repo].ts";
 import * as $BadgeCopier from "./islands/BadgeCopier.tsx";
 import * as $LiveRefresh from "./islands/LiveRefresh.tsx";
 import * as $RepoSearch from "./islands/RepoSearch.tsx";
@@ -24,8 +26,10 @@ const manifest = {
     "./routes/_middleware.ts": $_middleware,
     "./routes/api/ping/[owner]/[repo].ts": $api_ping_owner_repo_,
     "./routes/api/status/[owner]/[repo].ts": $api_status_owner_repo_,
+    "./routes/api/webhook/github.ts": $api_webhook_github,
     "./routes/badge/[owner]/[repo].ts": $badge_owner_repo_,
     "./routes/index.tsx": $index,
+    "./routes/rss/[owner]/[repo].ts": $rss_owner_repo_,
   },
   islands: {
     "./islands/BadgeCopier.tsx": $BadgeCopier,

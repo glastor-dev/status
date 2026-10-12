@@ -39,17 +39,38 @@ Deno.test("Deno KV - save and retrieve cached repo status", async () => {
   assertEquals(retrieved?.uptimePercentage, 99.95);
 });
 
-Deno.test("Deno KV - save and retrieve pings", async () => {
+Deno.test("Deno KV - save and retrieve pings with latency", async () => {
   await savePing("test-owner", "test-repo", {
     timestamp: new Date().toISOString(),
-    workflow: "CI",
+    workflow: "Synthetic Healthcheck",
     branch: "main",
     status: "success",
-    message: "Ping passed",
+    message: "HTTP 200 OK",
+    latencyMs: 142,
+    endpoint: "https://api.test.com/health",
+    httpStatus: 200,
   });
 
   const pings = await getPings("test-owner", "test-repo");
   assertEquals(pings.length > 0, true);
-  assertEquals(pings[0].workflow, "CI");
-  assertEquals(pings[0].status, "success");
+  assertEquals(pings[0].workflow, "Synthetic Healthcheck");
+  assertEquals(pings[0].latencyMs, 142);
+  assertEquals(pings[0].httpStatus, 200);
+  assertEquals(pings[0].endpoint, "https://api.test.com/health");
+});
+
+Deno.test("Deno KV - secret management and cache invalidation", async () => {
+  const { setRepoPingSecret, getRepoPingSecret, invalidateRepoCache } =
+    await import("../services/kv.ts");
+
+  await setRepoPingSecret("sec-owner", "sec-repo", "super-secret-xyz");
+  const secret = await getRepoPingSecret("sec-owner", "sec-repo");
+  assertEquals(secret, "super-secret-xyz");
+
+  await invalidateRepoCache("test-owner", "test-repo");
+  const cachedAfterInvalidation = await getCachedRepoStatus(
+    "test-owner",
+    "test-repo",
+  );
+  assertEquals(cachedAfterInvalidation, null);
 });

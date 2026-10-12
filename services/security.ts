@@ -55,3 +55,68 @@ export function sanitizeText(str: string, maxLength = 250): string {
   }
   return clean.trim().slice(0, maxLength);
 }
+
+/**
+ * Timing-safe string comparison to mitigate side-channel timing attacks.
+ */
+export function timingSafeEqualString(a: string, b: string): boolean {
+  if (typeof a !== "string" || typeof b !== "string") return false;
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  if (bufA.byteLength !== bufB.byteLength) {
+    return false;
+  }
+  let mismatch = 0;
+  for (let i = 0; i < bufA.byteLength; i++) {
+    mismatch |= bufA[i] ^ bufB[i];
+  }
+  return mismatch === 0;
+}
+
+/**
+ * Computes an HMAC-SHA256 hex digest for arbitrary string data.
+ */
+export async function createHmacSha256(
+  secret: string,
+  data: string,
+): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(data),
+  );
+  return Array.from(new Uint8Array(signature))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Verifies an HMAC-SHA256 signature in a timing-safe manner.
+ * Supports standard GitHub webhook 'sha256=' prefix.
+ */
+export async function verifyHmacSha256(
+  secret: string,
+  data: string,
+  expectedHex: string,
+): Promise<boolean> {
+  if (!secret || !data || !expectedHex) return false;
+  try {
+    const cleanExpected = expectedHex.replace(/^sha256=/, "").trim();
+    const computedHex = await createHmacSha256(secret, data);
+    return timingSafeEqualString(
+      computedHex.toLowerCase(),
+      cleanExpected.toLowerCase(),
+    );
+  } catch {
+    return false;
+  }
+}

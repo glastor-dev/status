@@ -1,0 +1,13 @@
+# FUNDING.yml - Supernova
+# Configuración de financiación para GitHub.
+
+# GitHub Sponsors
+github: glastor-dev
+
+# Open Collective
+open_collective: datagroupssl
+
+# URLs personalizadas
+custom:
+  - https://paypal.me/datagroupssl
+  - https://opencollective.com/datagroupssl

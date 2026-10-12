@@ -1,0 +1,55 @@
+name: "✨ Feature request"
+description: "Propón una mejora o nueva funcionalidad"
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por la propuesta.
+        Cuanto más claro sea el caso de uso, más fácil será evaluarlo.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Problema / necesidad"
+      description: "¿Qué problema querés resolver?"
+      placeholder: "Hoy es difícil/tedioso..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: "Propuesta"
+      description: "¿Qué te gustaría que haga el proyecto?"
+      placeholder: "Me gustaría que..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternativas"
+      description: "¿Qué alternativas consideraste?"
+      placeholder: "Alternativa A..., alternativa B..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Contexto adicional"
+      description: "Links, ejemplos, capturas, referencias."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: "Checklist"
+      options:
+        - label: "Busqué issues/PRs existentes relacionados"
+          required: true
+        - label: "Puedo aportar un PR si se aprueba la idea"
+          required: false

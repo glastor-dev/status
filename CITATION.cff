@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "StatusZero — Zero-Config Status Page for GitHub Repositories"
+type: software
+version: "1.0.0"
+date-released: "2026-10-12"
+authors:
+  - family-names: "Cardoso"
+    given-names: "Andrés Antonio"
+    email: "glastor.info@gmail.com"
+repository-code: "https://github.com/glastor-dev/status"
+url: "https://github.com/glastor-dev/status"
+license: GPL-3.0-only
+keywords:
+  - Deno
+  - Deno Deploy
+  - Deno KV
+  - Fresh
+  - Preact
+  - GitHub Actions
+  - Status Page
+  - Uptime
+  - Observability
+  - DevSecOps
+  - Edge Computing
+abstract: "Plataforma edge-native de páginas de estado ('Zero-Config Status Page') para repositorios de GitHub construida sobre Deno Deploy, Deno KV y Fresh. Incluye monitoreo de 90 días, badges SVG en vivo, feeds RSS 2.0 de incidentes, modo embed para iframes, webhooks nativos de GitHub y medición de latencia sintética."

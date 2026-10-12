@@ -1,0 +1,89 @@
+name: "🐛 Bug report"
+description: "Reporta un problema reproducible"
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar el problema.
+        Incluye la mayor cantidad de contexto posible para poder reproducirlo.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: "Descripción"
+      description: "¿Qué pasó y qué esperabas que pase?"
+      placeholder: "Descripción clara y concisa del bug."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Pasos para reproducir"
+      description: "Lista de pasos mínimos para reproducir el problema."
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Resultado esperado"
+      placeholder: "Qué debería haber ocurrido."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Resultado actual"
+      placeholder: "Qué ocurrió realmente (incluye logs si aplica)."
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: "Versión"
+      description: "Versión del proyecto (tag/commit) o cómo lo instalaste."
+      placeholder: "v1.0.0 / commit abc123 / deno task readme"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Sistema operativo"
+      options:
+        - "Windows"
+        - "Linux"
+        - "macOS"
+        - "Otro"
+    validations:
+      required: false
+
+  - type: textarea
+    id: env
+    attributes:
+      label: "Entorno"
+      description: "Incluye Deno y cualquier detalle relevante."
+      placeholder: |
+        - Deno: 2.x (pega salida de `deno --version`)
+        - SO: Windows/Linux/macOS
+        - Instalación: deno install / deno run
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs / salida de error"
+      description: "Pega aquí la salida relevante."
+      render: shell
+    validations:
+      required: false

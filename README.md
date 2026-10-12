@@ -4,10 +4,11 @@
 > edge-native alternative to Vercel Status and Instatus. Built with **Deno
 > Deploy**, **Deno KV**, **Fresh SSR**, and **Octokit**.
 
-[![Status](http://localhost:8000/badge/denoland/deno.svg)](http://localhost:8000/denoland/deno)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Status](https://img.shields.io/github/actions/workflow/status/glastor-dev/status/ci.yml?branch=master&label=CI%2FCD)](https://github.com/glastor-dev/status/actions)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![Built with Deno](https://img.shields.io/badge/Deno-2.x-black?logo=deno)](https://deno.land)
 [![Fresh Framework](https://img.shields.io/badge/Fresh-1.7.3-yellow?logo=fresh)](https://fresh.deno.dev)
+[![Repo](https://img.shields.io/badge/GitHub-glastor--dev%2Fstatus-181717?logo=github)](https://github.com/glastor-dev/status)
 
 ---
 
@@ -125,6 +126,20 @@ Deploy with 1-click or via GitHub integration on
 
 ---
 
-## 📄 License
+## 📚 Documentación y Recursos
 
-MIT © 2026 StatusZero Contributors
+- 👥 [CONTRIBUTORS.md](CONTRIBUTORS.md) — Gobernanza, equipo y guía de
+  patrocinio.
+- 📜 [CHANGELOG.md](CHANGELOG.md) — Historial de versiones y notas de
+  lanzamiento.
+- 🔖 [CITATION.cff](CITATION.cff) — Metadatos de citación académica y de
+  software.
+- 🛡️ [SECURITY.md](.github/SECURITY.md) — Políticas de seguridad y reporte de
+  vulnerabilidades.
+
+---
+
+## 📄 Licencia
+
+GPL-3.0 © 2010-2026 Andrés Antonio Cardoso — GLASTOR®. Todos los derechos
+reservados.

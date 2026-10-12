@@ -14,7 +14,7 @@ import {
 } from "./kv.ts";
 
 function getOctokit(): Octokit {
-  const token = Deno.env.get("GITHUB_TOKEN");
+  const token = Deno.env.get("GITHUB_TOKEN")?.trim();
   return new Octokit({
     auth: token || undefined,
     userAgent: "StatusZero-GitHubStatus/1.0",

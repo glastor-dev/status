@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Preguntas y soporte
+    url: https://github.com/glastor-dev/web-rust/discussions
+    about: Usa Discussions para preguntas generales, soporte y dudas de uso.
+  - name: Reporte de seguridad
+    url: https://github.com/glastor-dev/web-rust/security/policy
+    about: Para vulnerabilidades, sigue la política de seguridad.

@@ -1,9 +1,10 @@
 ## 🛠 Soporte, Mantenimiento y Ecosistema
 
 Para garantizar la escalabilidad de
-`**GLASTOR-DEV** la division de desarrollo de GLASTOR®` y una **DX (Developer
-Experience)** de primer nivel, hemos establecido protocolos de asistencia
-diseñados para optimizar el triaje y la resolución de consultas técnicas.
+`**GLASTOR-DEV** la división de desarrollo de GLASTOR®` y del proyecto
+**StatusZero**, manteniendo una **DX (Developer Experience)** de primer nivel,
+hemos establecido protocolos de asistencia diseñados para optimizar el triaje y
+la resolución de consultas técnicas.
 
 ### 💬 Centro de Conocimiento y Colaboración
 
@@ -37,4 +38,4 @@ forma privada para evitar vectores de ataque en entornos productivos:
 
 ---
 
-© 2010-2026 Andrés Antonio Cardoso — Todos los derechos reservados
+© 2010-2026 Andrés Antonio Cardoso — GLASTOR®. Todos los derechos reservados.

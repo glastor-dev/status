@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════
-# PROJECT SUPERNOVA - CODEOWNERS CONFIGURATION
+# STATUSZERO (GLASTOR-DEV/STATUS) - CODEOWNERS CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════
 # Purpose: Define ownership, accountability, and review protocols.
 # Reference: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
@@ -32,6 +32,8 @@ fresh.config.ts @glastor-dev
 README.md @glastor-dev
 CHANGELOG.md @glastor-dev
 CONTRIBUTING.md @glastor-dev
+CONTRIBUTORS.md @glastor-dev
+CITATION.cff @glastor-dev
 LICENSE @glastor-dev
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -1,28 +1,46 @@
-# Guía de Contribución y Gobernanza
+## 📝 Descripción del Cambio
 
-Bienvenido al ecosistema de este proyecto. Valoramos las contribuciones que
-priorizan la calidad técnica, la escalabilidad y el rigor arquitectónico. Para
-asegurar un flujo de trabajo eficiente y mantener la integridad del código base,
-hemos establecido protocolos detallados que todos los colaboradores deben
-seguir.
+<!-- Explica de forma concisa qué problema resuelve este Pull Request o qué funcionalidad agrega a StatusZero. -->
 
-## 🛠️ Protocolo de Colaboración
+## 🎯 Tipo de Cambio
 
-Antes de iniciar cualquier desarrollo, es imperativo consultar nuestra
-documentación técnica para alinearse con los estándares del proyecto:
+- [ ] 🚀 `feat`: Nueva funcionalidad o capacidad para el sistema.
+- [ ] 🐛 `fix`: Corrección de un error o problema de disponibilidad/resiliencia.
+- [ ] 🔒 `security`: Mejora o parche de AppSec / DevSecOps.
+- [ ] ⚡ `perf`: Optimización de rendimiento o consumo de recursos en Edge/KV.
+- [ ] ♻️ `refactor`: Refactorización interna sin cambio de comportamiento
+      visible.
+- [ ] 📚 `docs`: Actualización de documentación, guías o gobernanza.
+- [ ] 🧪 `test`: Incorporación o mejora de pruebas unitarias/integración.
+- [ ] 🔧 `chore`: Mantenimiento de configuración, tooling o dependencias.
 
-- **Directrices de Contribución:**
-  [Consultar CONTRIBUTING.md](./CONTRIBUTING.md)
+## 🔗 Issues Vinculados
 
-## ⚖️ Marcos Operativos y Seguridad
+<!-- Vincula issues relacionados, ej: Closes #12, Fixes #34 -->
 
-La excelencia de este software se fundamenta en un entorno de respeto mutuo y
-seguridad proactiva. Le solicitamos revisar exhaustivamente los siguientes
-marcos operativos antes de su participación:
+Closes #
 
-- **Código de Conducta:** [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) — Establece
-  los estándares de profesionalismo y ética esperados en nuestra comunidad.
-- **Política de Seguridad:** [SECURITY.md](./SECURITY.md) — Procedimientos
-  oficiales para el reporte y la gestión responsable de vulnerabilidades.
+## 📋 Checklist de Calidad y Gobernanza (Lead Quality / AppSec)
 
-© 2026 Andrés Antonio Cardoso | Profesionalismo en Software Libre
+Por favor, confirma que tu contribución cumple con los siguientes estándares
+antes de solicitar revisión:
+
+- [ ] He ejecutado `deno task check` localmente y **no existen advertencias ni
+      errores de linter ni de tipos**.
+- [ ] He ejecutado `deno test --unstable-kv -A` y **todas las pruebas pasan al
+      100%**.
+- [ ] Se respeta el tipado estricto de TypeScript (**0 tipos `any`**
+      introducidos).
+- [ ] Las entradas de usuario y llamadas a la API de GitHub están
+      sanitizadas/validadas contra path traversal y XSS.
+- [ ] He seguido la convención de mensajes
+      [Conventional Commits](.github/COMMIT_CONVENTION.md).
+- [ ] He actualizado el archivo [CHANGELOG.md](CHANGELOG.md) si este cambio
+      añade o altera funcionalidades públicas.
+- [ ] He revisado y acepto los marcos de
+      [CONTRIBUTING.md](.github/CONTRIBUTING.md) y
+      [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md).
+
+---
+
+© 2010-2026 Andrés Antonio Cardoso — GLASTOR®.

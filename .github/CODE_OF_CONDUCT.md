@@ -39,8 +39,8 @@ adherencia a los siguientes estándares:
 
 ## 3. Gobernanza y Compliance
 
-Los maintainers de GLASTOR-DENO actúan como el consejo de arquitectura y
-moderación. Es nuestra responsabilidad estratégica:
+Los maintainers de StatusZero (GLASTOR-DEV) actúan como el consejo de
+arquitectura y moderación. Es nuestra responsabilidad estratégica:
 
 - Garantizar una mediación imparcial en conflictos técnicos.
 - Moderar contribuciones que no cumplan con el estándar de calidad o conducta.
@@ -49,9 +49,9 @@ moderación. Es nuestra responsabilidad estratégica:
 
 ## 4. Alcance Operativo
 
-Este framework es vinculante en todos los espacios oficiales de GLASTOR-DENO en
-GitHub y en cualquier entorno donde se represente formalmente al proyecto
-(Conferencias, Meetups, StackOverflow).
+Este framework es vinculante en todos los espacios oficiales de StatusZero
+(GLASTOR-DEV) en GitHub y en cualquier entorno donde se represente formalmente
+al proyecto (Conferencias, Meetups, StackOverflow).
 
 ## 5. Protocolo de Respuesta a Incidentes (IRP)
 
@@ -80,7 +80,7 @@ incidencia:
 2. **Advertencia Formal:** Registro documentado de la falta con restricciones
    temporales de escritura.
 3. **Suspensión de Privilegios:** Bloqueo temporal de la capacidad de
-   interactuar con el ecosistema GLASTOR-DENO.
+   interactuar con el ecosistema StatusZero / GLASTOR-DEV.
 4. **Revocación Permanente:** Expulsión definitiva por infracciones críticas o
    degradación recurrente del entorno.
 
@@ -100,6 +100,6 @@ Este documento integra el
 [Contributor Covenant v2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)
 con marcos de gobernanza de **Mozilla** y estándares de **OpenSSF**.
 
-**Última revisión:** `2025-12-25` | **Versión:** `2.0.0-stable`
+**Última revisión:** `2026-10-12` | **Versión:** `2.0.0-stable`
 
-© 2010-2026 Andrés Antonio Cardoso — Todos los derechos reservados
+© 2010-2026 Andrés Antonio Cardoso — GLASTOR®. Todos los derechos reservados.

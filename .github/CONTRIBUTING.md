@@ -67,36 +67,49 @@ Implementamos un flujo de CI/CD riguroso para proteger la estabilidad de `main`:
 
 ## 💻 Setup del Entorno de Ingeniería
 
-1. **Clonación**
+1. **Clonación del Repositorio**
    ```bash
-   git clone https://github.com/glastor-dev/glastor-deno.git
-   cd glastor-deno
+   git clone https://github.com/glastor-dev/status.git
+   cd status
    ```
-2. **Ejecución y Desarrollo**
+2. **Configuración de Variables de Entorno**
    ```bash
-   deno task readme
+   copy .env.example .env
+   # Añade tu GITHUB_TOKEN en .env para desbloquear 5.000 req/h
    ```
-3. **Tests**
+3. **Ejecución del Servidor Local**
    ```bash
-   deno task test
+   deno task start
+   # Servidor listo en http://localhost:8000/
+   ```
+4. **Validación de Calidad y Tests**
+   ```bash
+   deno test --unstable-kv -A
+   deno task check
    ```
 
 ## 📐 Principios de Ingeniería y DX
 
-- **Integridad Sintáctica:** Adhesión total a las reglas de ESLint y Prettier.
-- **Semántica Orientada a Dominio:** Nombramiento descriptivo basado en el
-  contexto de negocio.
-- **Modularidad Atómica:** Seguimiento estricto de los principios SOLID y
-  patrones de diseño reactivos.
-- **Performance First:** Uso optimizado de React Hooks y memoización
-  estratégica.
+- **Integridad y Formateo:** Adhesión total a las reglas de `deno fmt` y
+  `deno lint`.
+- **Tipado Estricto:** Código 100% tipado en TypeScript con cero tolerancia a
+  tipos `any`.
+- **Arquitectura Edge-Native:** Islas reactivas en Fresh (Preact), SSR
+  ultraveloz y persistencia en Deno KV.
+- **Seguridad por Diseño (AppSec):** Validación exhaustiva de entradas,
+  mitigación de timing attacks y sanitización XML/SVG.
+- **Performance First:** Cero dependencias pesadas innecesarias y CSS puro
+  moderno sin sobrecarga.
 
 ## 🧪 Garantía de Calidad y Observabilidad
 
-- **QA Manual & Automatizado:** Validación cruzada de funcionalidades.
-- **Matriz de Compatibilidad:** Verificación en motores Blink, WebKit y Gecko.
-- **Responsive Design:** Adaptabilidad garantizada en todos los breakpoints.
-- **A11y:** Auditoría de accesibilidad conforme a estándares WCAG.
+- **QA Automatizado:** Cobertura de pruebas unitarias sobre servicios, seguridad
+  y persistencia KV.
+- **Matriz de Compatibilidad:** Verificación en motores Blink, WebKit y Gecko
+  para todas las interfaces y widgets.
+- **Responsive Design:** Diseño adaptativo garantizado para dispositivos
+  móviles, tablets y desktop.
+- **A11y:** Accesibilidad conforme a estándares WCAG.
 
 ## 📧 Canales de Alta Prioridad y Soporte
 

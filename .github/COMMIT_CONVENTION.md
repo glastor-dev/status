@@ -18,7 +18,8 @@ expresión regular para integrarse en el flujo de CI/CD:
 ### Parámetros de Calidad (Linting):
 
 - **Scope (Opcional):** Define el contexto del cambio entre paréntesis (ej.
-  `core`, `compiler`, `api`).
+  `core`, `kv`, `api`, `routes`, `islands`, `badge`, `rss`, `webhook`,
+  `security`).
 - **Sujeto:** Máximo 50 caracteres. Debe ser conciso y descriptivo.
 - **DX-First:** Historiales limpios facilitan el _debugging_ y el
   _cherry-picking_.
@@ -50,7 +51,7 @@ compatibilidad con herramientas de orquestación:
 | `test`            | Incremento de cobertura o fixes de testing.   |           No           |
 | `ci` / `workflow` | Ajustes en pipelines y automatización.        |           No           |
 | `chore`           | Mantenimiento de dependencias y tooling.      |           No           |
-| `style`           | Formateo de código (Prettier/Lint).           |           No           |
+| `style`           | Formateo de código (deno fmt/lint).           |           No           |
 | `types`           | Refinamiento de definiciones de tipos.        |           No           |
 | `polish`          | Refinamientos menores de UX/UI.               |           No           |
 

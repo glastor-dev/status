@@ -14,6 +14,10 @@ export async function handler(
   resp.headers.set("X-Content-Type-Options", "nosniff");
   resp.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   resp.headers.set(
+    "Strict-Transport-Security",
+    "max-age=31536000; includeSubDomains",
+  );
+  resp.headers.set(
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=()",
   );
@@ -21,7 +25,10 @@ export async function handler(
   // Badges need to be embeddable across any domain (GitHub README, docs, etc.)
   if (url.pathname.startsWith("/badge/")) {
     resp.headers.set("Access-Control-Allow-Origin", "*");
-    resp.headers.set("X-Frame-Options", "ALLOWALL");
+    resp.headers.set(
+      "Content-Security-Policy",
+      "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors *",
+    );
   } else {
     resp.headers.set("X-Frame-Options", "SAMEORIGIN");
     resp.headers.set(

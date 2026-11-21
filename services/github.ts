@@ -1,17 +1,25 @@
 // services/github.ts
-// GitHub API integration using Octokit, calculating status, uptime, workflow metrics and incidents.
+// GitHub API integration using Octokit with ETag conditional requests, singleflight deduplication,
+// parallel edge fetching, persistent Deno KV 90-day history, and synthetic ping status integration.
 
 import { Octokit } from "@octokit/rest";
 import {
+  DailyHistorySnapshot,
   getCachedRepoStatus,
+  getCacheTtlMs,
   getPings,
+  getRepoHistoryMap,
   HistoryDay,
   IncidentItem,
+  PingRecord,
   ReleaseInfo,
   RepoStatusData,
   saveRepoStatus,
   WorkflowRunItem,
 } from "./kv.ts";
+
+const inFlightRequests = new Map<string, Promise<RepoStatusData>>();
+const RECENT_PING_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 function getOctokit(): Octokit {
   const token = Deno.env.get("GITHUB_TOKEN")?.trim();
@@ -21,9 +29,27 @@ function getOctokit(): Octokit {
   });
 }
 
-function generateHistoryDays(
+function computePingLatencyMetrics(pings: PingRecord[]): {
+  averageLatencyMs?: number;
+  lastPingLatencyMs?: number;
+} {
+  const pingsWithLatency = pings.filter(
+    (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
+  );
+  const averageLatencyMs = pingsWithLatency.length > 0
+    ? Math.round(
+      pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
+        pingsWithLatency.length,
+    )
+    : undefined;
+  const lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
+  return { averageLatencyMs, lastPingLatencyMs };
+}
+
+export function generateHistoryDays(
   workflowRuns: WorkflowRunItem[],
   incidents: IncidentItem[],
+  kvHistory?: Map<string, DailyHistorySnapshot>,
 ): HistoryDay[] {
   const days: HistoryDay[] = [];
   const now = new Date();
@@ -59,12 +85,17 @@ function generateHistoryDays(
         uptimePercent = 95.0;
       } else {
         status = "degraded";
-        uptimePercent = 98.2;
+        uptimePercent =
+          Math.round(((totalRuns - failedRuns) / totalRuns) * 10000) /
+          100;
       }
-    } else if (totalRuns === 0 && i > 30) {
-      // Older days with no specific CI runs default to operational if no incidents
-      status = "operational";
-      uptimePercent = 100;
+    } else if (totalRuns === 0 && kvHistory?.has(dateStr)) {
+      // Hydrate real persisted daily history from Deno KV for older days beyond the last 20 runs
+      const snap = kvHistory.get(dateStr)!;
+      status = snap.status === "unknown" ? "operational" : snap.status;
+      uptimePercent = typeof snap.uptimePercent === "number"
+        ? snap.uptimePercent
+        : 100;
     }
 
     days.push({
@@ -80,6 +111,68 @@ function generateHistoryDays(
   return days;
 }
 
+export function computeOverallStatus(
+  workflowRuns: WorkflowRunItem[],
+  incidents: IncidentItem[],
+  recentPings: PingRecord[],
+  nowMs = Date.now(),
+): { status: RepoStatusData["status"]; statusMessage: string } {
+  const openIncidents = incidents.filter((i) => i.state === "open");
+  const recentRuns = workflowRuns.slice(0, 10);
+  const failedRecent = recentRuns.filter((r) => r.conclusion === "failure");
+
+  if (openIncidents.length > 0) {
+    return {
+      status: "outage",
+      statusMessage: `Incidente activo: ${openIncidents[0].title}`,
+    };
+  }
+
+  // Factor in recent synthetic healthcheck pings (last 24h)
+  const latestPing = recentPings[0];
+  if (latestPing) {
+    const pingAgeMs = nowMs - new Date(latestPing.timestamp).getTime();
+    const isFreshPing = Number.isFinite(pingAgeMs) &&
+      pingAgeMs <= RECENT_PING_WINDOW_MS;
+    const isPingFailure = latestPing.status === "failure" ||
+      (typeof latestPing.httpStatus === "number" &&
+        latestPing.httpStatus >= 500);
+    if (isFreshPing && isPingFailure) {
+      return {
+        status: "outage",
+        statusMessage: `Fallo en heartbeat sintético: ${
+          latestPing.message || latestPing.workflow || "Healthcheck fallido"
+        }`,
+      };
+    }
+  }
+
+  if (failedRecent.length > 0) {
+    if (failedRecent.length > recentRuns.length / 2) {
+      return {
+        status: "outage",
+        statusMessage: "Fallos críticos en pipelines de CI/CD detectados",
+      };
+    }
+    return {
+      status: "degraded",
+      statusMessage: "Degradación parcial en flujos de trabajo",
+    };
+  }
+
+  if (recentRuns.length === 0) {
+    return {
+      status: "operational",
+      statusMessage: "Operacional • Sin incidencias en CI/CD",
+    };
+  }
+
+  return {
+    status: "operational",
+    statusMessage: "Todos los sistemas y flujos operacionales",
+  };
+}
+
 export async function fetchRepoStatus(
   owner: string,
   repo: string,
@@ -87,38 +180,90 @@ export async function fetchRepoStatus(
 ): Promise<RepoStatusData> {
   const normalizedOwner = owner.trim();
   const normalizedRepo = repo.trim();
+  const flightKey =
+    `${normalizedOwner.toLowerCase()}/${normalizedRepo.toLowerCase()}`;
 
-  // 1. Check Deno KV cache
+  // 1. Check Deno KV cache honoring dynamic TTL (1m with token, 5m without)
   if (!forceRefresh) {
     const cached = await getCachedRepoStatus(normalizedOwner, normalizedRepo);
     if (cached) {
       const age = Date.now() - (cached.cachedAt || 0);
-      if (age < 60 * 1000) {
+      if (age < getCacheTtlMs()) {
         return cached;
       }
     }
   }
 
+  // 2. Singleflight deduplication: coalesce concurrent requests for the same repo
+  const existingFlight = inFlightRequests.get(flightKey);
+  if (existingFlight) {
+    return await existingFlight;
+  }
+
+  const task = fetchRepoStatusFromGitHub(
+    normalizedOwner,
+    normalizedRepo,
+    forceRefresh,
+  ).finally(() => {
+    inFlightRequests.delete(flightKey);
+  });
+
+  inFlightRequests.set(flightKey, task);
+  return await task;
+}
+
+async function fetchRepoStatusFromGitHub(
+  normalizedOwner: string,
+  normalizedRepo: string,
+  forceRefresh: boolean,
+): Promise<RepoStatusData> {
   const octokit = getOctokit();
+  const staleCached = await getCachedRepoStatus(
+    normalizedOwner,
+    normalizedRepo,
+    true,
+  );
 
   try {
-    // 2. Fetch repository info
-    const { data: repoData } = await octokit.rest.repos.get({
+    // 1. Fetch repository metadata with conditional ETag when available (304 costs 0 rate-limit)
+    const repoResp = await octokit.rest.repos.get({
       owner: normalizedOwner,
       repo: normalizedRepo,
+      headers: !forceRefresh && staleCached?.etag
+        ? { "If-None-Match": staleCached.etag }
+        : undefined,
     });
+    const repoData = repoResp.data;
+    const newEtag = typeof repoResp.headers?.etag === "string"
+      ? repoResp.headers.etag
+      : undefined;
 
-    // 3. Fetch workflow runs (actions)
-    let workflowRuns: WorkflowRunItem[] = [];
-    try {
-      const { data: runsData } = await octokit.rest.actions
-        .listWorkflowRunsForRepo({
+    // 2. Fetch workflow runs, issues, latest release, pings, and persisted KV history in parallel
+    const [runsRes, issuesRes, releaseRes, pingsRes, historyRes] = await Promise
+      .allSettled([
+        octokit.rest.actions.listWorkflowRunsForRepo({
           owner: normalizedOwner,
           repo: normalizedRepo,
           per_page: 20,
-        });
+        }),
+        octokit.rest.issues.listForRepo({
+          owner: normalizedOwner,
+          repo: normalizedRepo,
+          state: "all",
+          per_page: 20,
+          sort: "updated",
+        }),
+        octokit.rest.repos.getLatestRelease({
+          owner: normalizedOwner,
+          repo: normalizedRepo,
+        }),
+        getPings(normalizedOwner, normalizedRepo),
+        getRepoHistoryMap(normalizedOwner, normalizedRepo),
+      ]);
 
-      workflowRuns = (runsData.workflow_runs || []).map((run) => {
+    let workflowRuns: WorkflowRunItem[] = [];
+    if (runsRes.status === "fulfilled") {
+      workflowRuns = (runsRes.value.data.workflow_runs || []).map((run) => {
         const createdMs = new Date(run.created_at).getTime();
         const updatedMs = new Date(run.updated_at).getTime();
         const durationSeconds = Math.max(
@@ -150,25 +295,12 @@ export async function fetchRepoStatus(
           durationSeconds,
         };
       });
-    } catch (_err) {
-      // Actions may be disabled or empty in some repos
-      workflowRuns = [];
     }
 
-    // 4. Fetch issues for incident tracking
     let incidents: IncidentItem[] = [];
-    try {
-      const { data: issuesData } = await octokit.rest.issues.listForRepo({
-        owner: normalizedOwner,
-        repo: normalizedRepo,
-        state: "all",
-        per_page: 20,
-        sort: "updated",
-      });
-
-      // Filter issues labeled or titled as incident/outage/downtime/bug
-      incidents = issuesData
-        .filter((issue) => !issue.pull_request) // exclude PRs
+    if (issuesRes.status === "fulfilled") {
+      incidents = issuesRes.value.data
+        .filter((issue) => !issue.pull_request)
         .map((issue) => {
           const labelList = (issue.labels || []).map((l) =>
             typeof l === "string"
@@ -199,18 +331,11 @@ export async function fetchRepoStatus(
           };
         })
         .filter((i) => i.isIncident);
-    } catch (_err) {
-      incidents = [];
     }
 
-    // 5. Fetch latest release
     let latestRelease: ReleaseInfo | null = null;
-    try {
-      const { data: releaseData } = await octokit.rest.repos.getLatestRelease({
-        owner: normalizedOwner,
-        repo: normalizedRepo,
-      });
-
+    if (releaseRes.status === "fulfilled") {
+      const releaseData = releaseRes.value.data;
       latestRelease = {
         tag: releaseData.tag_name,
         name: releaseData.name || releaseData.tag_name,
@@ -218,39 +343,21 @@ export async function fetchRepoStatus(
         publishedAt: releaseData.published_at || releaseData.created_at,
         author: releaseData.author?.login || "Maintainer",
       };
-    } catch (_err) {
-      latestRelease = null;
     }
 
-    // 6. Fetch any custom pings recorded in Deno KV
-    const recentPings = await getPings(normalizedOwner, normalizedRepo);
+    const recentPings = pingsRes.status === "fulfilled" ? pingsRes.value : [];
+    const kvHistory = historyRes.status === "fulfilled"
+      ? historyRes.value
+      : undefined;
 
-    // 7. Calculate Status & Uptime
-    const openIncidents = incidents.filter((i) => i.state === "open");
-    const recentRuns = workflowRuns.slice(0, 10);
-    const failedRecent = recentRuns.filter((r) => r.conclusion === "failure");
+    // 3. Calculate overall status (including synthetic pings) & 90-day uptime history
+    const { status, statusMessage } = computeOverallStatus(
+      workflowRuns,
+      incidents,
+      recentPings,
+    );
 
-    let status: RepoStatusData["status"] = "operational";
-    let statusMessage = "Todos los sistemas y flujos operacionales";
-
-    if (openIncidents.length > 0) {
-      status = "outage";
-      statusMessage = `Incidente activo: ${openIncidents[0].title}`;
-    } else if (failedRecent.length > 0) {
-      if (failedRecent.length > recentRuns.length / 2) {
-        status = "outage";
-        statusMessage = "Fallos críticos en pipelines de CI/CD detectados";
-      } else {
-        status = "degraded";
-        statusMessage = "Degradación parcial en flujos de trabajo";
-      }
-    } else if (recentRuns.length === 0) {
-      status = "operational";
-      statusMessage = "Operacional • Sin incidencias en CI/CD";
-    }
-
-    // Compute uptime percentage across the history days
-    const historyBars = generateHistoryDays(workflowRuns, incidents);
+    const historyBars = generateHistoryDays(workflowRuns, incidents, kvHistory);
     const totalUptimeSum = historyBars.reduce(
       (acc, curr) => acc + curr.uptimePercent,
       0,
@@ -258,17 +365,9 @@ export async function fetchRepoStatus(
     const uptimePercentage =
       Math.round((totalUptimeSum / historyBars.length) * 100) / 100;
 
-    // Compute latency metrics if pings contain latency reports
-    const pingsWithLatency = recentPings.filter(
-      (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
+    const { averageLatencyMs, lastPingLatencyMs } = computePingLatencyMetrics(
+      recentPings,
     );
-    const averageLatencyMs = pingsWithLatency.length > 0
-      ? Math.round(
-        pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
-          pingsWithLatency.length,
-      )
-      : undefined;
-    const lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
 
     const result: RepoStatusData = {
       owner: repoData.owner.login,
@@ -292,51 +391,62 @@ export async function fetchRepoStatus(
       recentPings,
       averageLatencyMs,
       lastPingLatencyMs,
+      etag: newEtag,
     };
 
-    // Save to Deno KV
     await saveRepoStatus(result);
-
     return result;
   } catch (error: unknown) {
-    // 1. Si hay datos cacheados en Deno KV (incluso antiguos), los usamos como fallback
-    const staleCached = await getCachedRepoStatus(
-      normalizedOwner,
-      normalizedRepo,
-      true,
-    );
-    if (staleCached) {
-      staleCached.isRateLimited = true;
-      staleCached.recentPings = await getPings(
-        normalizedOwner,
-        normalizedRepo,
-      );
-      const pingsWithLatency = staleCached.recentPings.filter(
-        (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
-      );
-      staleCached.averageLatencyMs = pingsWithLatency.length > 0
-        ? Math.round(
-          pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
-            pingsWithLatency.length,
-        )
-        : undefined;
-      staleCached.lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
-      return staleCached;
-    }
-
     const err = error as {
       status?: number;
       message?: string;
       response?: { headers?: Record<string, string> };
     };
 
+    // Conditional ETag hit (304 Not Modified): refresh timestamp & pings at 0 rate-limit cost
+    if (err.status === 304 && staleCached) {
+      const recentPings = await getPings(normalizedOwner, normalizedRepo);
+      const { averageLatencyMs, lastPingLatencyMs } = computePingLatencyMetrics(
+        recentPings,
+      );
+      const { status, statusMessage } = computeOverallStatus(
+        staleCached.workflowRuns,
+        staleCached.incidents,
+        recentPings,
+      );
+      const refreshed: RepoStatusData = {
+        ...staleCached,
+        status,
+        statusMessage,
+        recentPings,
+        averageLatencyMs,
+        lastPingLatencyMs,
+        lastUpdated: new Date().toISOString(),
+        cachedAt: Date.now(),
+        isRateLimited: false,
+      };
+      await saveRepoStatus(refreshed);
+      return refreshed;
+    }
+
+    // Fallback to stale cache during rate limits or transient GitHub outages
+    if (staleCached && err.status !== 404) {
+      staleCached.isRateLimited = err.status === 403 || err.status === 429;
+      staleCached.recentPings = await getPings(normalizedOwner, normalizedRepo);
+      const { averageLatencyMs, lastPingLatencyMs } = computePingLatencyMetrics(
+        staleCached.recentPings,
+      );
+      staleCached.averageLatencyMs = averageLatencyMs;
+      staleCached.lastPingLatencyMs = lastPingLatencyMs;
+      return staleCached;
+    }
+
     if (err.status === 404) {
       throw new Error(
-        `El repositorio "${owner}/${repo}" no fue encontrado en GitHub.`,
+        `El repositorio "${normalizedOwner}/${normalizedRepo}" no fue encontrado en GitHub.`,
       );
     }
 
-    // 2. Si es rate limit (403/429) y no hay caché, modo degradado de resiliencia
     if (err.status === 403 || err.status === 429) {
       const resetHeader = err.response?.headers?.["x-ratelimit-reset"];
       const resetTimestamp = resetHeader
@@ -348,16 +458,9 @@ export async function fetchRepoStatus(
       );
 
       const recentPings = await getPings(normalizedOwner, normalizedRepo);
-      const pingsWithLatency = recentPings.filter(
-        (p) => typeof p.latencyMs === "number" && p.latencyMs > 0,
+      const { averageLatencyMs, lastPingLatencyMs } = computePingLatencyMetrics(
+        recentPings,
       );
-      const averageLatencyMs = pingsWithLatency.length > 0
-        ? Math.round(
-          pingsWithLatency.reduce((acc, p) => acc + (p.latencyMs || 0), 0) /
-            pingsWithLatency.length,
-        )
-        : undefined;
-      const lastPingLatencyMs = pingsWithLatency[0]?.latencyMs;
 
       const fallbackData: RepoStatusData = {
         owner: normalizedOwner,
@@ -387,13 +490,12 @@ export async function fetchRepoStatus(
         rateLimitResetMinutes: minutesUntilReset,
       };
 
-      // Guardar en KV para evitar golpear la API de GitHub mientras dure el bloqueo
       await saveRepoStatus(fallbackData);
       return fallbackData;
     }
 
     throw new Error(
-      `Error al consultar el estado de "${owner}/${repo}": ${
+      `Error al consultar el estado de "${normalizedOwner}/${normalizedRepo}": ${
         err.message || "Error desconocido"
       }`,
     );

@@ -87,6 +87,14 @@ export interface RepoStatusData {
   lastPingLatencyMs?: number;
   isRateLimited?: boolean;
   rateLimitResetMinutes?: number;
+  etag?: string;
+}
+
+export interface DailyHistorySnapshot {
+  date: string;
+  status: "operational" | "degraded" | "outage" | "unknown";
+  uptimePercent: number;
+  updatedAt: string;
 }
 
 let kvInstance: Deno.Kv | null = null;
@@ -220,4 +228,73 @@ export async function invalidateRepoCache(
   const kv = await getKv();
   const key = ["repo_status", owner.toLowerCase(), repo.toLowerCase()];
   await kv.delete(key);
+}
+
+/**
+ * Retrieves persisted daily history snapshots for a repository (up to 90 days).
+ */
+export async function getRepoHistoryMap(
+  owner: string,
+  repo: string,
+): Promise<Map<string, DailyHistorySnapshot>> {
+  const kv = await getKv();
+  const prefix = ["repo_history", owner.toLowerCase(), repo.toLowerCase()];
+  const map = new Map<string, DailyHistorySnapshot>();
+  const iter = kv.list<DailyHistorySnapshot>({ prefix });
+  for await (const entry of iter) {
+    if (entry.value?.date) {
+      map.set(entry.value.date, entry.value);
+    }
+  }
+  return map;
+}
+
+/**
+ * Atomic CAS rate-limiter backed by Deno KV (prevents concurrent TOCTOU bypasses).
+ */
+export async function consumeRateLimit(
+  key: Deno.KvKey,
+  maxPerWindow: number,
+  expireInMs: number,
+): Promise<{ allowed: boolean; count: number }> {
+  const kv = await getKv();
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const entry = await kv.get<number>(key);
+    const current = entry.value ?? 0;
+    if (current >= maxPerWindow) {
+      return { allowed: false, count: current };
+    }
+    const next = current + 1;
+    const res = await kv
+      .atomic()
+      .check(entry)
+      .set(key, next, { expireIn: expireInMs })
+      .commit();
+    if (res.ok) {
+      return { allowed: true, count: next };
+    }
+  }
+  return { allowed: false, count: maxPerWindow };
+}
+
+/**
+ * Guards `?refresh=true` against cache-busting DoS with an atomic per-repo cooldown.
+ */
+export async function canForceRefresh(
+  owner: string,
+  repo: string,
+  cooldownMs = 30 * 1000,
+): Promise<boolean> {
+  const kv = await getKv();
+  const key = ["refresh_cooldown", owner.toLowerCase(), repo.toLowerCase()];
+  const entry = await kv.get<number>(key);
+  if (entry.value && Date.now() - entry.value < cooldownMs) {
+    return false;
+  }
+  const res = await kv
+    .atomic()
+    .check(entry)
+    .set(key, Date.now(), { expireIn: cooldownMs })
+    .commit();
+  return res.ok;
 }

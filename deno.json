@@ -22,7 +22,15 @@
     }
   },
   "exclude": [
-    "**/_fresh/*"
+    "**/_fresh/*",
+    "src/",
+    "public/",
+    "node_modules/",
+    "tests/worker.test.ts",
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "wrangler.jsonc"
   ],
   "imports": {
     "$fresh/": "https://deno.land/x/fresh@1.7.3/",

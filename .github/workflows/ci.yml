@@ -38,10 +38,10 @@ jobs:
         run: deno lint
 
       - name: Run Strict Type Check
-        run: deno check **/*.ts **/*.tsx
+        run: deno check main.ts dev.ts services/*.ts routes/**/*.ts routes/**/*.tsx
 
       - name: Execute Unit & Integration Test Suite
-        run: deno test --unstable-kv -A
+        run: deno test --unstable-kv -A --ignore=tests/worker.test.ts
 
   worker:
     name: Cloudflare Worker (TypeCheck, Tests & Dry-Run)

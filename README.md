@@ -21,10 +21,10 @@
 - **Dynamic Real-Time SVG Badges**: Crisp vector status badges
   (`/badge/:owner/:repo.svg?lang=en|es&label=...`) with XML escaping and edge
   HTTP caching.
-- **Cloudflare Edge & KV Caching**: Runs across 300+ global edge locations
-  (~35 KiB gzipped bundle, ~5 ms startup) with dynamic KV TTL, conditional
-  GitHub **ETag (`304 Not Modified`)** requests, and consolidated 90-day daily
-  history snapshots.
+- **Cloudflare Edge & KV Caching**: Runs across 300+ global edge locations (~35
+  KiB gzipped bundle, ~5 ms startup) with dynamic KV TTL, conditional GitHub
+  **ETag (`304 Not Modified`)** requests, and consolidated 90-day daily history
+  snapshots.
 - **Deep GitHub Actions CI/CD Telemetry**: Tracks recent workflow runs,
   durations, commit SHAs, authors, branches, and failure rates in parallel.
 - **Issue-Driven Incident Management**: Opening an issue labeled `incident`,
@@ -33,8 +33,9 @@
 - **Headless JSON REST API**: Query `/api/status/:owner/:repo` (with cooldown
   protection on `?refresh=true`) to power bots, widgets, or dashboards.
 - **Fail-Closed Push Telemetry & Webhooks**: Authenticated
-  `POST /api/ping/:owner/:repo` heartbeats (with latency & HTTP status integrated
-  into overall status) and HMAC-SHA256 verified `POST /api/webhook/github`.
+  `POST /api/ping/:owner/:repo` heartbeats (with latency & HTTP status
+  integrated into overall status) and HMAC-SHA256 verified
+  `POST /api/webhook/github`.
 
 ---
 

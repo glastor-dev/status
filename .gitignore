@@ -8,6 +8,10 @@
 *.env.*.local
 
 # Fresh & Deno build artifacts
+node_modules/
+.wrangler/
+.dev.vars
+dist/
 _fresh/
 .deno/
 deno.lock

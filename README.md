@@ -4,7 +4,8 @@
 > edge-native alternative to Vercel Status and Instatus. Built with **Deno
 > Deploy**, **Deno KV**, **Fresh SSR**, and **Octokit**.
 
-[![Status](https://img.shields.io/github/actions/workflow/status/glastor-dev/status/ci.yml?branch=master&label=CI%2FCD)](https://github.com/glastor-dev/status/actions)
+[![Status](https://statuszero.pii-veilglastores.workers.dev/badge/glastor-dev/status.svg)](https://statuszero.pii-veilglastores.workers.dev/glastor-dev/status)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/glastor-dev/status/ci.yml?branch=master&label=CI%2FCD)](https://github.com/glastor-dev/status/actions)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Built with Deno](https://img.shields.io/badge/Deno-2.x-black?logo=deno)](https://deno.land)
 [![Fresh Framework](https://img.shields.io/badge/Fresh-1.7.3-yellow?logo=fresh)](https://fresh.deno.dev)
@@ -42,11 +43,11 @@
 Simply paste this Markdown badge into your repository's `README.md`:
 
 ```markdown
-[![Status](https://statuszero.deno.dev/badge/YOUR_OWNER/YOUR_REPO.svg)](https://statuszero.deno.dev/YOUR_OWNER/YOUR_REPO)
+[![Status](https://statuszero.pii-veilglastores.workers.dev/badge/YOUR_OWNER/YOUR_REPO.svg)](https://statuszero.pii-veilglastores.workers.dev/YOUR_OWNER/YOUR_REPO)
 ```
 
 Whenever users or team members click the badge, they are directed to your
-dedicated status page: `https://statuszero.deno.dev/YOUR_OWNER/YOUR_REPO`
+dedicated status page: `https://statuszero.pii-veilglastores.workers.dev/YOUR_OWNER/YOUR_REPO`
 
 ---
 
@@ -134,7 +135,7 @@ Deploy with 1-click or via GitHub integration on
   lanzamiento.
 - 🔖 [CITATION.cff](CITATION.cff) — Metadatos de citación académica y de
   software.
-- 🛡️ [SECURITY.md](.github/SECURITY.md) — Políticas de seguridad y reporte de
+- 🔒 [SECURITY.md](.github/SECURITY.md) — Políticas de seguridad y reporte de
   vulnerabilidades.
 - 📄 [LICENSE](LICENSE) — Licencia de código abierto GNU Affero General Public
   License v3.0 (AGPL-3.0).

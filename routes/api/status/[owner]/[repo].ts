@@ -1,6 +1,7 @@
 // routes/api/status/[owner]/[repo].ts
 import { FreshContext } from "$fresh/server.ts";
 import { fetchRepoStatus } from "../../../../services/github.ts";
+import { canForceRefresh } from "../../../../services/kv.ts";
 import { isValidGitHubIdentifier } from "../../../../services/security.ts";
 
 export const handler = async (
@@ -10,7 +11,7 @@ export const handler = async (
   const owner = ctx.params.owner;
   const repo = ctx.params.repo;
   const url = new URL(req.url);
-  const forceRefresh = url.searchParams.get("refresh") === "true";
+  const requestedRefresh = url.searchParams.get("refresh") === "true";
 
   // AppSec: Strict input validation
   if (!isValidGitHubIdentifier(owner) || !isValidGitHubIdentifier(repo)) {
@@ -36,6 +37,9 @@ export const handler = async (
   }
 
   try {
+    const forceRefresh = requestedRefresh
+      ? await canForceRefresh(owner, repo)
+      : false;
     const data = await fetchRepoStatus(owner, repo, forceRefresh);
     return new Response(JSON.stringify(data, null, 2), {
       status: 200,

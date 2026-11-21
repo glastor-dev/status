@@ -120,3 +120,60 @@ export async function verifyHmacSha256(
     return false;
   }
 }
+
+/**
+ * Reads a Request body up to `maxBytes`, aborting early if Content-Length or streamed bytes
+ * exceed the limit (mitigates memory exhaustion / payload flooding).
+ */
+export async function readBoundedBody(
+  req: Request,
+  maxBytes: number,
+): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const contentLength = req.headers.get("content-length");
+  if (contentLength) {
+    const declared = Number(contentLength);
+    if (Number.isFinite(declared) && declared > maxBytes) {
+      return {
+        ok: false,
+        error:
+          `Cuerpo de la petición demasiado grande (máximo ${maxBytes} bytes).`,
+      };
+    }
+  }
+
+  if (!req.body) {
+    return { ok: true, text: "" };
+  }
+
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel();
+        return {
+          ok: false,
+          error:
+            `Cuerpo de la petición demasiado grande (máximo ${maxBytes} bytes).`,
+        };
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { ok: true, text: new TextDecoder().decode(merged) };
+}

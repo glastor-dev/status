@@ -74,3 +74,26 @@ Deno.test("Deno KV - secret management and cache invalidation", async () => {
   );
   assertEquals(cachedAfterInvalidation, null);
 });
+
+Deno.test("Deno KV - history map, atomic rate limit, and refresh cooldown", async () => {
+  const {
+    canForceRefresh,
+    consumeRateLimit,
+    getRepoHistoryMap,
+  } = await import("../services/kv.ts");
+
+  const history = await getRepoHistoryMap("test-owner", "test-repo");
+  assertEquals(history.size >= 1, true);
+
+  const rlKey = ["test_rl", crypto.randomUUID()];
+  const r1 = await consumeRateLimit(rlKey, 2, 60_000);
+  const r2 = await consumeRateLimit(rlKey, 2, 60_000);
+  const r3 = await consumeRateLimit(rlKey, 2, 60_000);
+  assertEquals(r1.allowed, true);
+  assertEquals(r2.allowed, true);
+  assertEquals(r3.allowed, false);
+
+  const repoName = `cooldown-${crypto.randomUUID().slice(0, 8)}`;
+  assertEquals(await canForceRefresh("test-owner", repoName, 60_000), true);
+  assertEquals(await canForceRefresh("test-owner", repoName, 60_000), false);
+});

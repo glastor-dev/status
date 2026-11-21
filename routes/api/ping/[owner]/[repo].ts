@@ -1,7 +1,7 @@
 // routes/api/ping/[owner]/[repo].ts
 import { FreshContext } from "$fresh/server.ts";
 import {
-  getKv,
+  consumeRateLimit,
   getRepoPingSecret,
   invalidateRepoCache,
   PingRecord,
@@ -9,12 +9,14 @@ import {
 } from "../../../../services/kv.ts";
 import {
   isValidGitHubIdentifier,
+  readBoundedBody,
   sanitizeText,
   timingSafeEqualString,
   verifyHmacSha256,
 } from "../../../../services/security.ts";
 
 const RATE_LIMIT_MAX_PER_MINUTE = 30;
+const MAX_PING_BODY_BYTES = 32 * 1024; // 32 KiB
 
 export const handler = async (
   req: Request,
@@ -47,8 +49,7 @@ export const handler = async (
     );
   }
 
-  // AppSec: Rate Limiting via Deno KV sliding minute
-  const kv = await getKv();
+  // AppSec: Atomic Rate Limiting via Deno KV sliding minute
   const currentMinute = Math.floor(Date.now() / 60000);
   const rateLimitKey = [
     "ratelimit_ping",
@@ -56,10 +57,13 @@ export const handler = async (
     repo.toLowerCase(),
     currentMinute,
   ];
-  const rateLimitEntry = await kv.get<number>(rateLimitKey);
-  const currentCount = rateLimitEntry.value || 0;
+  const rateLimit = await consumeRateLimit(
+    rateLimitKey,
+    RATE_LIMIT_MAX_PER_MINUTE,
+    120 * 1000,
+  );
 
-  if (currentCount >= RATE_LIMIT_MAX_PER_MINUTE) {
+  if (!rateLimit.allowed) {
     return new Response(
       JSON.stringify({
         error:
@@ -75,9 +79,14 @@ export const handler = async (
     );
   }
 
-  await kv.set(rateLimitKey, currentCount + 1, { expireIn: 120 * 1000 });
-
-  const rawBody = await req.text();
+  const bodyResult = await readBoundedBody(req, MAX_PING_BODY_BYTES);
+  if (!bodyResult.ok) {
+    return new Response(JSON.stringify({ error: bodyResult.error }), {
+      status: 413,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const rawBody = bodyResult.text;
   let body: Record<string, unknown> = {};
   if (rawBody.trim()) {
     try {
@@ -93,8 +102,22 @@ export const handler = async (
     }
   }
 
-  // AppSec: Authentication check (HMAC-SHA256 or Bearer secret token)
+  // AppSec: Fail-closed authentication check (HMAC-SHA256 or Bearer secret token)
   const configuredSecret = await getRepoPingSecret(owner, repo);
+  const allowUnauthenticated =
+    Deno.env.get("ALLOW_UNAUTHENTICATED_PINGS") === "true";
+  if (!configuredSecret && !allowUnauthenticated) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "Endpoint de pings protegido (fail-closed): configura PING_SECRET o un secreto por repositorio.",
+      }),
+      {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
   if (configuredSecret) {
     const authHeader = req.headers.get("Authorization") || "";
     const tokenHeader = req.headers.get("x-statuszero-token") || "";

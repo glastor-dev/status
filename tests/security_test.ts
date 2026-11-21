@@ -85,3 +85,21 @@ Deno.test("Security - verifyHmacSha256 calculates and verifies HMAC signatures",
   const wrongSecret = await verifyHmacSha256("wrong-key", payload, signature);
   assertEquals(wrongSecret, false);
 });
+
+Deno.test("Security - readBoundedBody enforces maximum byte limits", async () => {
+  const { readBoundedBody } = await import("../services/security.ts");
+
+  const smallReq = new Request("https://example.com/api", {
+    method: "POST",
+    body: JSON.stringify({ ok: true }),
+  });
+  const okRes = await readBoundedBody(smallReq, 1024);
+  assertEquals(okRes.ok, true);
+
+  const hugeReq = new Request("https://example.com/api", {
+    method: "POST",
+    body: "A".repeat(2048),
+  });
+  const deniedRes = await readBoundedBody(hugeReq, 512);
+  assertEquals(deniedRes.ok, false);
+});
